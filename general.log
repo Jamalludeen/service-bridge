@@ -1,0 +1,13 @@
+2025-11-14 14:51:54,422 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-11-14 14:53:03,988 (INFO) - django.utils.autoreload - /home/karimi/Desktop/django/serviceBridge/serviceBridge/settings.py changed, reloading.
+2025-11-14 14:55:31,598 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-11-14 14:56:24,003 (INFO) - django.utils.autoreload - /home/karimi/Desktop/django/serviceBridge/serviceBridge/settings.py changed, reloading.
+2025-11-14 14:56:24,391 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader
+2025-11-14 14:56:31,730 (INFO) - django.server - "POST /auth/login/ HTTP/1.1" 200 205
+2025-11-14 14:56:41,411 (WARNING) - django.request - Not Found: /auth/login/
+2025-11-14 14:56:41,411 (WARNING) - django.server - "POST /auth/login/ HTTP/1.1" 404 45
+2025-11-14 14:57:02,591 (INFO) - django.server - "POST /auth/login/ HTTP/1.1" 200 205
+2025-11-14 14:57:11,287 (WARNING) - django.request - Bad Request: /auth/login/
+2025-11-14 14:57:11,287 (WARNING) - django.server - "POST /auth/login/ HTTP/1.1" 400 33
+2025-11-14 15:01:55,019 (INFO) - django.utils.autoreload - /home/karimi/Desktop/django/serviceBridge/serviceBridge/settings.py changed, reloading.
+2025-11-14 15:01:55,346 (INFO) - django.utils.autoreload - Watching for file changes with StatReloader

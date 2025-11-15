@@ -1,0 +1,19 @@
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+from django.utils import timezone
+
+class User(AbstractUser):
+    ROLE_CHOICES = (
+        ("customer", "Customer"),
+        ("professional", "Professional"),
+        ("admin", "Admin"),
+    )
+    email = models.EmailField(unique=True)
+    phone = models.CharField(unique=True, max_length=20)
+    role = models.CharField(max_length=255, choices=ROLE_CHOICES)
+    otp = models.CharField(max_length=6, blank=True, null=True)
+    otp_created_at = models.DateTimeField(blank=True, null=True)  # NEW
+    is_verified = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.username
