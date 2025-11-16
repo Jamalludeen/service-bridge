@@ -169,32 +169,66 @@ class LogoutView(APIView):
 
 
 class LoginView(APIView):
+    MAX_ATTEMPTS = 5
+    LOCKOUT_TIME = timedelta(minutes=5)
+
     def post(self, request):
         # get the user object requested
         user_obj = get_object_or_404(User, username=request.data.get("username"))
 
-        # check if user exist in database and the account is verified with OTP code
-        if user_obj and user_obj.is_verified:
+        # if the user try to login when his/her account is locked
+        if user_obj.lockout_until and timezone.now() < user_obj.lockout_until:
+            remaining = (user_obj.lockout_until - timezone.now()).seconds // 60
+            return Response(
+                {"message": f"Account locked. Try again after {remaining} minutes."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        # if the user account is not verfied with OTP
+        if not user_obj.is_verified:
+            return Response({"message": "Your account is not verified!"}, status=400)
 
-            # if the user's provided password is invalid, send a message for user
-            if not user_obj.check_password(request.data.get("password")):
-                return Response({
-                    "message":"Invalid credentials"
-                },status=status.HTTP_400_BAD_REQUEST)
+        password = request.data.get("password")
+
+        # if the password entered is wrong
+        if not user_obj.check_password(password):
+            # increase the number of failed attempts
+            user_obj.faild_attempts += 1
+
+            # if the failed attempts reaches to maximum
+            if user_obj.faild_attempts >= self.MAX_ATTEMPTS:
+                # set the lock time for user
+                user_obj.lockout_until = timezone.now() + self.LOCKOUT_TIME
+                # reset the failed attempts after locking
+                user_obj.failed_attempts = 0
+                user_obj.save()
+
+                return Response(
+                    {"message": "Too many failed attempts. Your account is locked for 5 minutes."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
             
-            """
-            The regeneration/deletion of tokens on each login and the deletion on each logout
-            is to improve system security/decrease security risks
-            """
-            # delete the previous token that was generated for the user
-            Token.objects.filter(user=user_obj).delete()
+            # if the failed login don't reach to maximum 
+            user_obj.save()
+            return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+        
 
-            # generate new token eveytime user login to the system
-            token, _ = Token.objects.get_or_create(user=user_obj)
-            serializer = UserSerializer(instance=user_obj)
-            return Response({"token": token.key,"user": serializer.data})
-    
-        return Response({"message":"Your account is not verfied!"}, status=status.HTTP_400_BAD_REQUEST)
+        # password is correct -> reset attempts
+        user_obj.failed_attempts = 0
+        user_obj.lockout_until = None
+        user_obj.save()
+
+        # Refresh token on login
+        Token.objects.filter(user=user_obj).delete()
+        token, _ = Token.objects.get_or_create(user=user_obj)
+
+        serializer = UserSerializer(instance=user_obj)
+
+        return Response({
+            "token": token.key,
+            "user": serializer.data
+        }, status=200)
+
 
 
 class RegisterView(APIView):
