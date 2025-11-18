@@ -112,7 +112,6 @@ class ForgotPasswordView(APIView):
                 )
         
         # generate OTP for user, and set the OTP creation time
-        # otp = str(random.randint(100000, 999999))
         otp = generate_otp()
         user.otp = otp
         user.otp_created_at = timezone.now()
@@ -237,28 +236,26 @@ class LoginView(APIView):
         }, status=200)
 
 
+class RegisterView(APIView):
+    def post(self, request, role):
 
-class RegisterCustomerView(APIView):
-    def post(self, request):
         data = request.data.copy()
-        
-        # As this view register only customers, we always set the role to customer 
-        try:
-            data.pop("role")
-        except KeyError:
-            data["role"] = "customer"
+        data["role"] = role
 
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
             
             # Generate a 6-digit numeric OTP
-            # otp = str(random.randint(100000, 999999))
             otp = generate_otp()
-            print("otp in registration: ", otp)
             user.otp = otp
             user.otp_created_at = timezone.now()
             user.is_verified = False
+
+            if role == "admin":
+                user.is_superuser = True
+                user.is_staff = True
+
             user.save()
 
             # Send OTP to user's email
