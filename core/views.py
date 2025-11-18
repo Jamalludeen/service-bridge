@@ -13,11 +13,17 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
 from datetime import timedelta
-import random
+import secrets
 
 
 User = get_user_model()
 UserSerializer = import_string(settings.USER_SERIALIZER)
+
+OTP_LENGTH = 6
+
+
+def generate_otp(length=OTP_LENGTH):
+    return ''.join(secrets.choice("0123456789") for _ in range(length))
 
 
 
@@ -106,7 +112,8 @@ class ForgotPasswordView(APIView):
                 )
         
         # generate OTP for user, and set the OTP creation time
-        otp = str(random.randint(100000, 999999))
+        # otp = str(random.randint(100000, 999999))
+        otp = generate_otp()
         user.otp = otp
         user.otp_created_at = timezone.now()
         user.save()
@@ -231,14 +238,24 @@ class LoginView(APIView):
 
 
 
-class RegisterView(APIView):
+class RegisterCustomerView(APIView):
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
+        data = request.data.copy()
+        
+        # As this view register only customers, we always set the role to customer 
+        try:
+            data.pop("role")
+        except KeyError:
+            data["role"] = "customer"
+
+        serializer = UserSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
             
             # Generate a 6-digit numeric OTP
-            otp = str(random.randint(100000, 999999))
+            # otp = str(random.randint(100000, 999999))
+            otp = generate_otp()
+            print("otp in registration: ", otp)
             user.otp = otp
             user.otp_created_at = timezone.now()
             user.is_verified = False
@@ -294,7 +311,7 @@ class VerifyOTPView(APIView):
             user.otp_created_at = None
             user.save()
             return Response(
-                {"message": "Email verified successfully!"}, 
+                {"message": "You account has been verified successfully!"}, 
                 status=status.HTTP_200_OK
                 )
         else:
