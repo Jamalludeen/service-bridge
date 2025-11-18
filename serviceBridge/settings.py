@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-!6v616c1*v5r$h+1+0v49mblm13ps+sw66p*-j0ex+n41(3#%)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'core',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -77,8 +78,14 @@ WSGI_APPLICATION = 'serviceBridge.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'serviceBridge',  # Your database name
+        'USER': 'postgres',      # Your PostgreSQL user
+        'PASSWORD': 'password',  # Your PostgreSQL password
+        'HOST': '127.0.0.1',      # Database host
+        'PORT': '5432',            # Database port
     }
 }
 
@@ -165,3 +172,5 @@ LOGGING={
         }
     }
 }
+
+CORS_ALLOW_ALL_ORIGINS = True

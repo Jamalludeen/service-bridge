@@ -174,34 +174,34 @@ class LoginView(APIView):
 
     def post(self, request):
         # get the user object requested
-        user_obj = get_object_or_404(User, username=request.data.get("username"))
+        user = get_object_or_404(User, username=request.data.get("username"))
 
         # if the user try to login when his/her account is locked
-        if user_obj.lockout_until and timezone.now() < user_obj.lockout_until:
-            remaining = (user_obj.lockout_until - timezone.now()).seconds // 60
+        if user.lockout_until and timezone.now() < user.lockout_until:
+            remaining = (user.lockout_until - timezone.now()).seconds // 60
             return Response(
                 {"message": f"Account locked. Try again after {remaining} minutes."},
                 status=status.HTTP_403_FORBIDDEN
             )
         
         # if the user account is not verfied with OTP
-        if not user_obj.is_verified:
+        if not user.is_verified:
             return Response({"message": "Your account is not verified!"}, status=400)
 
         password = request.data.get("password")
 
         # if the password entered is wrong
-        if not user_obj.check_password(password):
+        if not user.check_password(password):
             # increase the number of failed attempts
-            user_obj.faild_attempts += 1
+            user.faild_attempts += 1
 
             # if the failed attempts reaches to maximum
-            if user_obj.faild_attempts >= self.MAX_ATTEMPTS:
+            if user.faild_attempts >= self.MAX_ATTEMPTS:
                 # set the lock time for user
-                user_obj.lockout_until = timezone.now() + self.LOCKOUT_TIME
+                user.lockout_until = timezone.now() + self.LOCKOUT_TIME
                 # reset the failed attempts after locking
-                user_obj.failed_attempts = 0
-                user_obj.save()
+                user.failed_attempts = 0
+                user.save()
 
                 return Response(
                     {"message": "Too many failed attempts. Your account is locked for 5 minutes."},
@@ -209,20 +209,20 @@ class LoginView(APIView):
                 )
             
             # if the failed login don't reach to maximum 
-            user_obj.save()
+            user.save()
             return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
         
 
         # password is correct -> reset attempts
-        user_obj.failed_attempts = 0
-        user_obj.lockout_until = None
-        user_obj.save()
+        user.failed_attempts = 0
+        user.lockout_until = None
+        user.save()
 
         # Refresh token on login
-        Token.objects.filter(user=user_obj).delete()
-        token, _ = Token.objects.get_or_create(user=user_obj)
+        Token.objects.filter(user=user).delete()
+        token, _ = Token.objects.get_or_create(user=user)
 
-        serializer = UserSerializer(instance=user_obj)
+        serializer = UserSerializer(instance=user)
 
         return Response({
             "token": token.key,
