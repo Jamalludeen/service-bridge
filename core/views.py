@@ -15,6 +15,7 @@ from rest_framework.authentication import TokenAuthentication
 from datetime import timedelta
 import secrets
 
+from .signals import otp_verified
 
 User = get_user_model()
 UserSerializer = import_string(settings.USER_SERIALIZER)
@@ -307,6 +308,9 @@ class VerifyOTPView(APIView):
             user.otp = None
             user.otp_created_at = None
             user.save()
+
+            otp_verified.send(sender=User, user=user)
+
             return Response(
                 {"message": "You account has been verified successfully!"}, 
                 status=status.HTTP_200_OK
