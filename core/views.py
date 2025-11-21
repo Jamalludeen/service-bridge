@@ -308,7 +308,8 @@ class VerifyOTPView(APIView):
             user.otp = None
             user.otp_created_at = None
             user.save()
-
+            
+            # send a success email to the user upon successfully creation of account
             otp_verified.send(sender=User, user=user)
 
             return Response(
