@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'core',
     'corsheaders',
+    'customer',
 ]
 
 MIDDLEWARE = [
@@ -174,3 +175,6 @@ LOGGING={
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

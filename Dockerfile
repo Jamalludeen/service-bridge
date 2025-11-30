@@ -1,17 +1,17 @@
-FROM python:3.13.3-slim-bookworm
+FROM python:3.13.3-alpine
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-PYTHONUNBUFFERED=1 
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1 
 
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y curl
+# RUN apt-get update && apt-get install -y curl
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+# COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 COPY ./requirements.txt .
 
-RUN uv pip install -r requirements.txt --system
+RUN pip install -r requirements.txt
 
 COPY . .
 
