@@ -32,3 +32,5 @@ class UserAdmin(BaseUserAdmin):
             },
         ),
     ) 
+
+    list_display = ["id", "username", "role", "email", "phone"]
