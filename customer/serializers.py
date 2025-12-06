@@ -14,4 +14,8 @@ class CustomerRetrieveProfileSerializer(serializers.ModelSerializer):
         model = CustomerProfile
         fields = ["id", "profile_image", "city", "district", "detailed_address"]
 
-        
+
+class CustomerUpdateProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomerProfile
+        fields = ["profile_image", "city", "district", "detailed_address"]

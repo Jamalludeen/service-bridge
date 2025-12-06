@@ -8,25 +8,34 @@ from rest_framework.generics import RetrieveAPIView
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
-from .serializers import CustomerProfileSerializer, CustomerRetrieveProfileSerializer
+from .serializers import CustomerProfileSerializer, CustomerRetrieveProfileSerializer, CustomerUpdateProfileSerializer
 from .permissions import IsCustomerOwner
 from .models import CustomerProfile
 
 User = get_user_model()
 
-# class CustomerProfileRetrieveView(APIView):
-#     authentication_classes = [TokenAuthentication]
-#     permission_classes = [IsCustomerOwner]
 
-#     def get(self, request):
-#         profile = get_object_or_404(CustomerProfile, user=request.user)
+class CustomerProfileUpdateView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsCustomerOwner]
 
-#         # Manually trigger object-level permission check
-#         self.check_object_permissions(request, profile)
+    def patch(self, request, *args, **kwargs):
+        user_id = request.user.id
+        profile = get_object_or_404(CustomerProfile, user=user_id)
+        
+        self.check_object_permissions(request, profile)
 
-#         serializer = CustomerProfileSerializer(profile)
-#         return Response(serializer.data, status=status.HTTP_200_OK)
+        serializer = CustomerUpdateProfileSerializer(instance=profile, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
+
+
+
 class CustomerProfileRetrieveView(RetrieveAPIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsCustomerOwner]
