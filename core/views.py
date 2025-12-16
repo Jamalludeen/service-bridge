@@ -11,6 +11,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.exceptions import PermissionDenied
 
 from datetime import timedelta
 import secrets
@@ -170,10 +171,15 @@ class ChangePasswordView(APIView):
 
 
 class LogoutView(APIView):
-    def post(self, request):
-        Token.objects.filter(user=request.user).delete()
-        return Response({"message": "Logged out!"}, status=status.HTTP_200_OK)
+    permission_classes = [IsAuthenticated]  # Ensure the user must be authenticated
+    authentication_classes = [TokenAuthentication]
 
+    def post(self, request):
+        if request.user.is_authenticated:
+            Token.objects.filter(user=request.user).delete()
+            return Response({"message": "Logged out!"}, status=status.HTTP_200_OK)
+        else:
+            raise PermissionDenied("You must be logged in to log out.")
 
 class LoginView(APIView):
     MAX_ATTEMPTS = 5
