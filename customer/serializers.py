@@ -12,7 +12,10 @@ class CustomerProfileSerializer(serializers.ModelSerializer):
 class CustomerRetrieveProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProfile
-        fields = ["id", "profile_image", "city", "district", "detailed_address"]
+        fields = [
+            "id", "profile_image", "city", "district", "detailed_address", 
+            "latitude", "longitude", "preferred_language", "total_bookings", "avg_rating_given"
+            ]
 
 
 class CustomerUpdateProfileSerializer(serializers.ModelSerializer):

@@ -15,6 +15,7 @@ from .models import CustomerProfile
 User = get_user_model()
 
 
+
 class CustomerProfileUpdateView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsCustomerOwner]
@@ -35,7 +36,6 @@ class CustomerProfileUpdateView(APIView):
     
 
 
-
 class CustomerProfileRetrieveView(RetrieveAPIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsCustomerOwner]
@@ -48,6 +48,7 @@ class CustomerProfileRetrieveView(RetrieveAPIView):
         obj = self.get_object()
         self.check_object_permissions(request, obj)
         return super().get(request, *args, **kwargs)
+
 
 
 class CustomerProfileView(APIView):
@@ -81,5 +82,17 @@ class CustomerProfileView(APIView):
         return Response(
            serializer.errors,
            status=status.HTTP_400_BAD_REQUEST
+        )
+    
+    def delete(self, request):
+        self.permission_classes = [IsCustomerOwner]
+        self.check_permissions(request)
+
+        user = self.request.user
+        profile = get_object_or_404(CustomerProfile, user=user)
+        profile.delete()
+        return Response(
+            {"message": "Profile deleted successfully"},
+            status=status.HTTP_204_NO_CONTENT
         )
     
