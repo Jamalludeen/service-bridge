@@ -22,6 +22,12 @@ class UserSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "passwords are not matching!"})
+        
+        email:str = attrs['email']
+        
+        if not email.endswith("@gmail.com"):
+            raise serializers.ValidationError({"email": "please enter a valid email address."})
+        
         return attrs
     
     def create(self, validated_data):

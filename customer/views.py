@@ -1,7 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.generics import RetrieveAPIView
 
@@ -54,6 +54,14 @@ class CustomerProfileRetrieveView(RetrieveAPIView):
 class CustomerProfileView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+
+    def get(self,request):
+        self.permission_classes = [IsAdminUser]
+        self.check_permissions(request)
+
+        profiles = CustomerProfile.objects.all()
+        serializer = CustomerProfileSerializer(profiles, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     def post(self, request):
         user = get_object_or_404(User, username=request.user)

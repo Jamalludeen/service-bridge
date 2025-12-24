@@ -288,6 +288,7 @@ class VerifyOTPView(APIView):
 
         try:
             user = User.objects.get(email=email)
+            print("user: ", user)
         except User.DoesNotExist:
             return Response({"error": "Invalid email"}, status=status.HTTP_400_BAD_REQUEST)
 
