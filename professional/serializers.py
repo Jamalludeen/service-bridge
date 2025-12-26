@@ -1,9 +1,16 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework import serializers
 from .models import ServiceCategory, Professional
 
 
+class ProfessionalUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Professional
+        fields = [
+            'city', 'bio', 'years_of_experience', 'services', 'profile',
+            'document', 'preferred_language'
+        ]
 
-class ServiceCategorySerializer(ModelSerializer):
+class ServiceCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = ServiceCategory
         fields = [
@@ -11,7 +18,16 @@ class ServiceCategorySerializer(ModelSerializer):
         ]
 
 
-class ProfessionalCreateSerializer(ModelSerializer):
+class ProfessionalCreateSerializer(serializers.ModelSerializer):
+    services = serializers.PrimaryKeyRelatedField(
+        queryset=ServiceCategory.objects.all(),
+        many=True
+    )
+
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+
     class Meta:
         model = Professional
         fields = [
