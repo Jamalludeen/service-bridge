@@ -43,12 +43,19 @@ class CreateProfessionalProfileView(APIView):
     def post(self, request):
         user = get_object_or_404(User, username=request.user.username)
 
-
         if Professional.objects.filter(user=user).exists():
             return Response(
                 {"message": "Professional with profile already exist!"}, 
                 status=status.HTTP_400_BAD_REQUEST
                 )
+        
+        if not user.is_verified:
+            return Response(
+                {
+                    "message": "Please verify your account!",
+                },
+                status=status.HTTP_406_NOT_ACCEPTABLE
+            )
         
         # data = request.data.dict()
         # data['user'] = user.id
