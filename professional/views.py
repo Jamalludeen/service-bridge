@@ -22,7 +22,26 @@ class CreateProfessionalProfileView(APIView):
 
 
     def get(self, request):
-        pass
+        if request.user.role == 'professional':
+            self.permission_classes = [IsProfessionalUser]
+
+            professional_obj = Professional.objects.get(user=request.user)
+            self.check_object_permissions(request, professional_obj)
+
+            serializer = ProfessionalCreateSerializer(professional_obj)
+            return Response(
+                {"data": serializer.data},
+                status=status.HTTP_200_OK
+            )
+        
+        if request.user.role == 'admin':
+            self.permission_classes = [IsAuthenticated]
+            professionals = Professional.objects.all()
+            serializer = ProfessionalCreateSerializer(professionals, many=True)
+            return Response(
+                serializer.data,
+                status=status.HTTP_200_OK
+            )
 
     def patch(self, request):
         self.permission_classes = [IsProfessionalOwner]
@@ -57,13 +76,6 @@ class CreateProfessionalProfileView(APIView):
                 status=status.HTTP_406_NOT_ACCEPTABLE
             )
         
-        # data = request.data.dict()
-        # data['user'] = user.id
-
-        # print(type(request.data.get("services")), request.data.get("services"))
-        # print(request.data.getlist("services"))
-
-
         serializer = ProfessionalCreateSerializer(
             data=request.data,
             context={'request': request}
