@@ -68,12 +68,7 @@ class CreateProfessionalProfileView(APIView):
 
     def post(self, request):
         user = get_object_or_404(User, username=request.user.username)
-        # if the requested user's profile exists, return an error message
-        if Professional.objects.filter(user=user).exists():
-            return Response(
-                {"message": "Professional with profile already exist!"}, 
-                status=status.HTTP_400_BAD_REQUEST
-                )
+
         # if the user account is not verified
         if not user.is_verified:
             return Response(
@@ -82,6 +77,13 @@ class CreateProfessionalProfileView(APIView):
                 },
                 status=status.HTTP_406_NOT_ACCEPTABLE
             )
+        
+        # if the requested user's profile exists, return an error message
+        if Professional.objects.filter(user=user).exists():
+            return Response(
+                {"message": "Professional with profile already exist!"}, 
+                status=status.HTTP_400_BAD_REQUEST
+                )
         
         serializer = ProfessionalCreateSerializer(
             data=request.data,
