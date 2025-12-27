@@ -22,10 +22,14 @@ class CreateProfessionalProfileView(APIView):
 
 
     def get(self, request):
+        # check if user is professional
         if request.user.role == 'professional':
+            # set the permission class 
             self.permission_classes = [IsProfessionalUser]
 
+            # get the user's profile who has requested
             professional_obj = Professional.objects.get(user=request.user)
+            # check for the ownership of the object
             self.check_object_permissions(request, professional_obj)
 
             serializer = ProfessionalCreateSerializer(professional_obj)
@@ -34,6 +38,7 @@ class CreateProfessionalProfileView(APIView):
                 status=status.HTTP_200_OK
             )
         
+        # if the user is admin we show up all the profiles for admin
         if request.user.role == 'admin':
             self.permission_classes = [IsAuthenticated]
             professionals = Professional.objects.all()
@@ -44,9 +49,11 @@ class CreateProfessionalProfileView(APIView):
             )
 
     def patch(self, request):
+        # set the permission, so only the profile owner be able to update his/her profile
         self.permission_classes = [IsProfessionalOwner]
         profile = get_object_or_404(Professional, user=request.user)
 
+        # enforce to check the object permission
         self.check_object_permissions(request, profile)
 
         serializer = ProfessionalUpdateSerializer(instance=profile, data=request.data, partial=True)
@@ -61,13 +68,13 @@ class CreateProfessionalProfileView(APIView):
 
     def post(self, request):
         user = get_object_or_404(User, username=request.user.username)
-
+        # if the requested user's profile exists, return an error message
         if Professional.objects.filter(user=user).exists():
             return Response(
                 {"message": "Professional with profile already exist!"}, 
                 status=status.HTTP_400_BAD_REQUEST
                 )
-        
+        # if the user account is not verified
         if not user.is_verified:
             return Response(
                 {
