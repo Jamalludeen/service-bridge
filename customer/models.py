@@ -21,7 +21,7 @@ class CustomerProfile(models.Model):
         upload_to=profile_picture_upload_path, null=True, blank=True,
         validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg'])]
         )
-
+    
     # Address, Map, Location 
     city = models.CharField(max_length=100, null=True, blank=True)
     district = models.CharField(max_length=100, null=True, blank=True)

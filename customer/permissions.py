@@ -11,3 +11,9 @@ class IsCustomerOwner(BasePermission):
             return result
 
         return False
+
+
+class IsAdmin(BasePermission):
+    def has_permission(self, request, view):
+        return request.user.role == 'admin'
+    

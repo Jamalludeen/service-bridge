@@ -3,6 +3,9 @@ from .models import CustomerProfile
 
 
 class CustomerProfileSerializer(serializers.ModelSerializer):
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
     class Meta:
         model = CustomerProfile
         fields = '__all__'
