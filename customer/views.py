@@ -23,43 +23,29 @@ class CustomerProfileView(APIView):
     # if the user sends a get request to just return his/her profile data
     def get(self,request):
         self.check_permissions(request)
-        profile = CustomerProfile.objects.get(user=request.user)
-        print("profile: ", profile)
+        profile = get_object_or_404(CustomerProfile, user=request.user)
         serializer = CustomerProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # if a post request is send by users we handle profile creation for them
     def post(self, request):
-        user = get_object_or_404(User, username=request.user)
+        serializer = CustomerProfileSerializer(
+            data=request.data,
+            context={'request': request}
+        )
 
-        # if the user is already associated with a profile
-        if CustomerProfile.objects.filter(user=user).exists():
-            return Response(
-                {"message": "Customer with profile already exist!"}, 
-                status=status.HTTP_400_BAD_REQUEST
-                )
-        
-        data = request.data.copy()
-        user_id = user.id
-        data["user"] = user_id
-
-        serializer = CustomerProfileSerializer(data=data)
-        # check for data validation
         if serializer.is_valid():
             profile = serializer.save()
-
-            profile_serializer = CustomerProfileSerializer(profile)
-
             return Response(
-                {"message": "Profile successfully created!", "profile": profile_serializer.data},
+                {
+                    "message": "Profile successfully created!",
+                    "profile": CustomerProfileSerializer(profile).data
+                },
                 status=status.HTTP_201_CREATED
-                )
-        
-        return Response(
-           serializer.errors,
-           status=status.HTTP_400_BAD_REQUEST
-        )
-    
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def patch(self, request, *args, **kwargs):
         # set the premission, so only the creator of profile can update
         self.permission_classes = [IsCustomerOwner]
