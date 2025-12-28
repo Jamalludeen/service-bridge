@@ -10,13 +10,13 @@ class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True, required=True, validators=[validate_password]
     )
-    password2 = serializers.CharField(write_only=True, required=True)
+    # password2 = serializers.CharField(write_only=True, required=True)
 
     class Meta:
         model = User
         fields = [
             'id', 'username', 'first_name', 'last_name',
-            'email', 'phone', 'role', 'password', 'password2'
+            'email', 'phone', 'role', 'password',
         ]
 
     def validate_phone(self, phone: str):
@@ -45,10 +45,10 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         # Password confirmation
-        if attrs['password'] != attrs['password2']:
-            raise serializers.ValidationError(
-                {"password": "Passwords do not match."}
-            )
+        # if attrs['password'] != attrs['password2']:
+        #     raise serializers.ValidationError(
+        #         {"password": "Passwords do not match."}
+        #     )
 
         # Email validation (simple, exam-safe)
         email: str = attrs.get('email', '')
@@ -60,7 +60,7 @@ class UserSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
-        validated_data.pop("password2")
+        # validated_data.pop("password2")
         password = validated_data.pop("password")
 
         user = User(**validated_data)
