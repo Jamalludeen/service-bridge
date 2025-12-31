@@ -113,6 +113,7 @@ class ProfessionalProfileView(APIView):
     
     def delete(self, request):
         profile = Professional.objects.get(user=request.user)
+        # make sure the requested user want to delete his/her profile
         if request.user == profile.user:
             profile.delete()
             return Response(
