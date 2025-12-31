@@ -11,6 +11,7 @@ from rest_framework.views import APIView
 from .serializers import ServiceCategorySerializer, ProfessionalCreateSerializer, ProfessionalUpdateSerializer
 from .models import ServiceCategory, Professional
 from .permissions import IsProfessionalUser, IsProfessionalOwner
+from .throttles import ProfessionalProfileThrottle
 
 User = get_user_model()
 
@@ -19,6 +20,7 @@ User = get_user_model()
 class ProfessionalProfileView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    throttle_classes = [ProfessionalProfileThrottle]
 
     def get_permissions(self):
         """
