@@ -10,6 +10,7 @@ from django.shortcuts import get_object_or_404
 from .serializers import CustomerProfileSerializer, CustomerUpdateProfileSerializer
 from .permissions import IsCustomerOwner
 from .models import CustomerProfile
+from .throttles import CustomerProfileThrottle
 
 User = get_user_model()
 
@@ -18,6 +19,7 @@ User = get_user_model()
 class CustomerProfileView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    throttle_classes = [CustomerProfileThrottle]
 
     # if the user sends a get request to just return his/her profile data
     def get(self,request):
