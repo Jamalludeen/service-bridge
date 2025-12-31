@@ -16,7 +16,7 @@ User = get_user_model()
 
 
 
-class CreateProfessionalProfileView(APIView):
+class ProfessionalProfileView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -47,6 +47,11 @@ class CreateProfessionalProfileView(APIView):
                 serializer.data,
                 status=status.HTTP_200_OK
             )
+        
+        return Response(
+            {"message": "You are not allowed to access this endpoint"},
+            status=status.HTTP_403_FORBIDDEN
+        )
 
     def patch(self, request):
         # set the permission, so only the profile owner be able to update his/her profile
@@ -105,8 +110,20 @@ class CreateProfessionalProfileView(APIView):
            serializer.errors,
            status=status.HTTP_400_BAD_REQUEST
         )
-
-
+    
+    def delete(self, request):
+        profile = Professional.objects.get(user=request.user)
+        if request.user == profile.user:
+            profile.delete()
+            return Response(
+                {"message": "Profile deleted!"},
+                status=status.HTTP_204_NO_CONTENT
+            )
+        return Response(
+            {"message": "You are not allowed to delete this enpoint!"},
+            status=status.HTTP_403_FORBIDDEN
+        )
+        
 
 class ServiceCategoryViewset(ModelViewSet):
     serializer_class = ServiceCategorySerializer
