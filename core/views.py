@@ -17,6 +17,7 @@ from datetime import timedelta
 import secrets
 
 from .signals import otp_verified
+from .throttles import UserAuthThrottle
 
 User = get_user_model()
 UserSerializer = import_string(settings.USER_SERIALIZER)
@@ -184,6 +185,7 @@ class LogoutView(APIView):
 class LoginView(APIView):
     MAX_ATTEMPTS = 5
     LOCKOUT_TIME = timedelta(minutes=5)
+    throttle_classes = [UserAuthThrottle]
 
     def post(self, request):
         # get the user object requested
