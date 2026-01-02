@@ -17,7 +17,7 @@ from datetime import timedelta
 import secrets
 
 from .signals import otp_verified
-from .throttles import UserAuthThrottle
+from .throttles import UserAuthThrottle, OTPVerifyThrottle
 
 User = get_user_model()
 UserSerializer = import_string(settings.USER_SERIALIZER)
@@ -284,6 +284,8 @@ class RegisterView(APIView):
 
 
 class VerifyOTPView(APIView):
+    throttle_classes = [OTPVerifyThrottle]
+    
     def post(self, request):
         email = request.data.get("email")
         otp_input = request.data.get("otp")
