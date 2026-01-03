@@ -11,7 +11,7 @@ class Service(models.Model):
     )
 
     professional = models.ForeignKey(
-        Professional, on_delete=models.CASCADE, related_name="services"
+        Professional, on_delete=models.CASCADE, related_name="offered_services"
     )
     category = models.ForeignKey(
         ServiceCategory, on_delete=models.CASCADE
@@ -24,4 +24,3 @@ class Service(models.Model):
     price_per_unit = models.DecimalField(max_digits=10, decimal_places=2)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
