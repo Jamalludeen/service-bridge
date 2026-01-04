@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import PermissionDenied
 
-from .email_templates import OTP_EMAIL_TEMPLATE
+from .email_templates import OTP_EMAIL_TEMPLATE, WELCOME_EMAIL_TEMPLATE
 
 from datetime import timedelta
 import secrets
@@ -26,10 +26,75 @@ User = get_user_model()
 UserSerializer = import_string(settings.USER_SERIALIZER)
 
 OTP_LENGTH = 6
+OTP_EXPIRY_MINUTES = 5
+REGISTRATION_CACHE_PREFIX = "reg_"
 
 
 def generate_otp(length=OTP_LENGTH):
     return ''.join(secrets.choice("0123456789") for _ in range(length))
+
+
+def send_otp_email(email, otp):
+    subject = "کد تأیید پلتفورم هوشمند خدمت"
+    formatted_otp = ' '.join([otp[i:i+3] for i in range(0, len(otp), 3)])
+    html_content = OTP_EMAIL_TEMPLATE.format(
+        otp=formatted_otp,
+        expiry_minutes=OTP_EXPIRY_MINUTES,
+        current_year=timezone.now().year
+    )
+    try:
+        email_msg = EmailMultiAlternatives(
+            subject=subject,
+            body=f"کد تأیید شما: {otp} (معتبر تا {OTP_EXPIRY_MINUTES} دقیقه)",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[email],
+        )
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
+        return True
+    except Exception as e:
+        print(f"Error sending OTP email: {e}")
+        send_mail(
+            subject="OTP Verification",
+            message=f"Your OTP code is: {otp}. Valid for {OTP_EXPIRY_MINUTES} minutes.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[email],
+            fail_silently=True,
+        )
+        return False
+
+
+def send_welcome_email(user):
+    subject = f"خوش آمدید به پلتفورم هوشمند خدمت، {user.first_name or user.username}!"
+    
+    html_content = WELCOME_EMAIL_TEMPLATE.format(
+        username=user.first_name or user.username,
+        email=user.email,
+        phone=user.phone,
+        current_year=timezone.now().year
+    )
+    
+    try:
+        email_msg = EmailMultiAlternatives(
+            subject=subject,
+            body=f"Welcome {user.first_name or user.username}! Your account has been successfully created.",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            to=[user.email],
+        )
+        email_msg.attach_alternative(html_content, "text/html")
+        email_msg.send()
+        return True
+    except Exception as e:
+        print(f"Error sending welcome email: {e}")
+        send_mail(
+            subject="Welcome to Our Platform!",
+            message=f"Hi {user.first_name or user.username},\n\nYour account has been successfully created!\n\nUsername: {user.username}\nEmail: {user.email}\nPhone: {user.phone}",
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+        return False
+
 
 
 
