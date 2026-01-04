@@ -293,13 +293,6 @@ class RegisterView(APIView):
 
             email.attach_alternative(html_content, "text/html")
             email.send(fail_silently=False)
-            # send_mail(
-            #     subject="Verify your email",
-            #     message=f"Your verification OTP code is: {otp}. It expires in 5 minutes.",
-            #     from_email=settings.DEFAULT_FROM_EMAIL,
-            #     recipient_list=[user.email],
-            #     fail_silently=False,
-            # )
 
             return Response({
                 "message": "User registered successfully! Check your email for OTP verification."
