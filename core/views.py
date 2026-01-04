@@ -1,5 +1,5 @@
 from django.utils import timezone
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.utils.module_loading import import_string
 from django.contrib.auth import get_user_model
@@ -12,6 +12,8 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.exceptions import PermissionDenied
+
+from .email_templates import OTP_EMAIL_TEMPLATE
 
 from datetime import timedelta
 import secrets
@@ -268,13 +270,36 @@ class RegisterView(APIView):
             user.save()
 
             # Send OTP to user's email
-            send_mail(
-                subject="Verify your email",
-                message=f"Your verification OTP code is: {otp}. It expires in 5 minutes.",
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[user.email],
-                fail_silently=False,
+            expiry_minutes = 5
+            current_year = timezone.now().year
+
+            html_content = OTP_EMAIL_TEMPLATE.format(
+                otp=otp,
+                expiry_minutes=expiry_minutes,
+                current_year=current_year
             )
+
+            text_content = (
+                f"Your OTP code is {otp}"
+                f"It will expire in {expiry_minutes} minutes."
+            )
+
+            email = EmailMultiAlternatives(
+                subject="Verify your  email address",
+                body=text_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[user.email],
+            )
+
+            email.attach_alternative(html_content, "text/html")
+            email.send(fail_silently=False)
+            # send_mail(
+            #     subject="Verify your email",
+            #     message=f"Your verification OTP code is: {otp}. It expires in 5 minutes.",
+            #     from_email=settings.DEFAULT_FROM_EMAIL,
+            #     recipient_list=[user.email],
+            #     fail_silently=False,
+            # )
 
             return Response({
                 "message": "User registered successfully! Check your email for OTP verification."
