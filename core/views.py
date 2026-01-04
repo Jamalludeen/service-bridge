@@ -4,6 +4,7 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -248,10 +249,15 @@ class LoginView(APIView):
 
 
 class RegisterView(APIView):
+    @transaction.atomic
     def post(self, request, role):
 
         data = request.data.copy()
         data["role"] = role
+
+        user_exists = User.objects.filter(email=data.get("email")).exists()
+
+        # if user_exists:
 
         serializer = UserSerializer(data=data)
         if serializer.is_valid():
