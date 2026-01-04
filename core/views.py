@@ -108,6 +108,26 @@ def validate_afg_phone(phone):
     return re.match(pattern, phone) is not None
 
 
+def get_user_response_data(user):
+    return {
+        "id": user.id,
+        "username": user.username,
+        "first_name": user.first_name or "",
+        "last_name": user.last_name or "",
+        "email": user.email,
+        "phone": user.phone,
+        "role": user.role,
+        "is_verified": user.is_verified
+    }
+
+
+def create_auth_token(user):
+    """Create or get authentication token for user"""
+    Token.objects.filter(user=user).delete()
+    token, _ = Token.objects.get_or_create(user=user)
+    return token
+
+
 class ResetPasswordView(APIView):
     def post(self, request):
         # get user data
