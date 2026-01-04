@@ -5,6 +5,8 @@ from django.utils.module_loading import import_string
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db import transaction
+from django.core.cache import cache
+
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -18,6 +20,7 @@ from .email_templates import OTP_EMAIL_TEMPLATE, WELCOME_EMAIL_TEMPLATE
 
 from datetime import timedelta
 import secrets
+import re
 
 from .signals import otp_verified
 from .throttles import UserAuthThrottle, OTPVerifyThrottle
@@ -95,7 +98,14 @@ def send_welcome_email(user):
         )
         return False
 
+def get_registration_data(email):
+    cache_key = f"{REGISTRATION_CACHE_PREFIX}{email}"  # No role in key
+    return cache.get(cache_key)
 
+
+def validate_afg_phone(phone):
+    pattern = r'^07\d{8}$'
+    return re.match(pattern, phone) is not None
 
 
 class ResetPasswordView(APIView):
