@@ -15,6 +15,8 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     faild_attempts = models.IntegerField(default=0)
     lockout_until = models.DateTimeField(null=True, blank=True)
+    auth_session_id = models.CharField(max_length=255, blank=True, null=True)
+    last_otp_sent_at = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return self.username
