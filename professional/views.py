@@ -65,11 +65,10 @@ class ProfessionalProfileView(APIView):
 
         user = request.user
 
-        # Must be authenticated
-        if not user.is_authenticated:
-            return Response(
-                {"detail": "Authentication required."},
-                status=status.HTTP_401_UNAUTHORIZED
+        if user.role == "customer":
+            return Response (
+                {"message": "You are not allowed to access this endpoint"},
+                status=status.HTTP_403_FORBIDDEN
             )
 
         # Must be verified
