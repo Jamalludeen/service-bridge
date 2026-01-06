@@ -81,14 +81,14 @@ WSGI_APPLICATION = 'serviceBridge.wsgi.application'
 
 DATABASES = {
     'default': {
-        # 'ENGINE': 'django.db.backends.sqlite3',
-        # 'NAME': BASE_DIR / 'db.sqlite3',
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'serviceBridge',  # Your database name
-        'USER': 'postgres',      # Your PostgreSQL user
-        'PASSWORD': 'password',  # Your PostgreSQL password
-        'HOST': '127.0.0.1',      # Database host
-        'PORT': '5432',            # Database port
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.postgresql',
+        # 'NAME': 'serviceBridge',  # Your database name
+        # 'USER': 'postgres',      # Your PostgreSQL user
+        # 'PASSWORD': 'password',  # Your PostgreSQL password
+        # 'HOST': '127.0.0.1',      # Database host
+        # 'PORT': '5432',            # Database port
     }
 }
 
