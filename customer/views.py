@@ -30,6 +30,12 @@ class CustomerProfileView(APIView):
 
     # if a post request is send by users we handle profile creation for them
     def post(self, request):
+        if request.user.role  == "admin" or request.user.role == "professional":
+            return Response(
+                {"message": "Your account cannot be switched to a customer"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
         serializer = CustomerProfileSerializer(
             data=request.data,
             context={'request': request}
