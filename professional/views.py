@@ -20,7 +20,7 @@ User = get_user_model()
 class ProfessionalProfileView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
-    throttle_classes = [ProfessionalProfileThrottle]
+    # throttle_classes = [ProfessionalProfileThrottle]
 
     def get_permissions(self):
         """

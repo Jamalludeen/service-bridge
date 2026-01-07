@@ -252,7 +252,7 @@ class LogoutView(APIView):
 class LoginView(APIView):
     MAX_ATTEMPTS = 5
     LOCKOUT_TIME = timedelta(minutes=5)
-    throttle_classes = [UserAuthThrottle]
+    # throttle_classes = [UserAuthThrottle]
 
     def post(self, request):
         # get the user object requested
@@ -350,7 +350,7 @@ class RegisterView(APIView):
 
 
 class VerifyOTPView(APIView):
-    throttle_classes = [OTPVerifyThrottle]
+    # throttle_classes = [OTPVerifyThrottle]
     
     def post(self, request):
         email = request.data.get("email")
