@@ -1,9 +1,37 @@
 from rest_framework import serializers
+
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth import authenticate
+from django.utils import timezone
+
 import re
 
 User = get_user_model()
+
+
+class LoginSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+    password = serializers.CharField()
+
+    def validate(self, attrs):
+        user = authenticate(
+            username=attrs['email'],  # still called username internally
+            password=attrs['password']
+        )
+
+        if not user:
+            raise serializers.ValidationError("Invalid email or password")
+
+        if user.lockout_until and user.lockout_until > timezone.now():
+            raise serializers.ValidationError("Account temporarily locked")
+
+        if not user.is_verified:
+            raise serializers.ValidationError("Account not verified")
+
+        attrs['user'] = user
+        return attrs
+
 
 
 class UserSerializer(serializers.ModelSerializer):
