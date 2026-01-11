@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.db import transaction
 from django.core.cache import cache
-
+from django.contrib.auth import authenticate
 
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -24,6 +24,7 @@ import re
 
 from .signals import otp_verified
 from .throttles import UserAuthThrottle, OTPVerifyThrottle
+from .serializers import LoginSerializer
 
 User = get_user_model()
 UserSerializer = import_string(settings.USER_SERIALIZER)
@@ -249,68 +250,86 @@ class LogoutView(APIView):
         else:
             raise PermissionDenied("You must be logged in to log out.")
 
+
 class LoginView(APIView):
     MAX_ATTEMPTS = 5
     LOCKOUT_TIME = timedelta(minutes=5)
-    # throttle_classes = [UserAuthThrottle]
 
     def post(self, request):
-        # get the user object requested
-        user = get_object_or_404(User, username=request.data.get("username"))
-
-        # if the user try to login when his/her account is locked
-        if user.lockout_until and timezone.now() < user.lockout_until:
-            remaining = (user.lockout_until - timezone.now()).seconds // 60
-            return Response(
-                {"message": f"Account locked. Try again after {remaining} minutes."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-        
-        # if the user account is not verfied with OTP
-        if not user.is_verified:
-            return Response({"message": "Your account is not verified!"}, status=400)
-
+        email = request.data.get("email")
         password = request.data.get("password")
 
-        # if the password entered is wrong
-        if not user.check_password(password):
-            # increase the number of failed attempts
+        if not email or not password:
+            return Response(
+                {"message": "Email and password are required."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Use email to fetch user
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response(
+                {"message": "Invalid credentials."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Check lockout
+        if user.lockout_until and timezone.now() < user.lockout_until:
+            return Response(
+                {"message": "Account temporarily locked. Try again later."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Check OTP verification
+        if not user.is_verified:
+            return Response(
+                {"message": "Account is not verified."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Authenticate using backend (email-based)
+        authenticated_user = authenticate(
+            request,
+            username=email,   # still passed as username internally
+            password=password
+        )
+
+        if not authenticated_user:
             user.faild_attempts += 1
 
-            # if the failed attempts reaches to maximum
             if user.faild_attempts >= self.MAX_ATTEMPTS:
-                # set the lock time for user
                 user.lockout_until = timezone.now() + self.LOCKOUT_TIME
-                # reset the failed attempts after locking
-                user.failed_attempts = 0
+                user.faild_attempts = 0
                 user.save()
 
                 return Response(
-                    {"message": "Too many failed attempts. Your account is locked for 5 minutes."},
+                    {"message": "Too many failed attempts. Account locked for 5 minutes."},
                     status=status.HTTP_403_FORBIDDEN
                 )
-            
-            # if the failed login don't reach to maximum 
-            user.save()
-            return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
-        
 
-        # password is correct -> reset attempts
-        user.failed_attempts = 0
+            user.save()
+            return Response(
+                {"message": "Invalid credentials."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Successful login
+        user.faild_attempts = 0
         user.lockout_until = None
         user.save()
 
-        # Refresh token on login
+        # Refresh token
         Token.objects.filter(user=user).delete()
-        token, _ = Token.objects.get_or_create(user=user)
+        token = Token.objects.create(user=user)
 
-        serializer = UserSerializer(instance=user)
+        serializer = UserSerializer(user)
 
         return Response({
             "token": token.key,
             "user": serializer.data
-        }, status=200)
-
+        }, status=status.HTTP_200_OK)
+    
 
 class RegisterView(APIView):
     @transaction.atomic

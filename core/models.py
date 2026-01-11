@@ -15,6 +15,9 @@ class User(AbstractUser):
     is_verified = models.BooleanField(default=False)
     faild_attempts = models.IntegerField(default=0)
     lockout_until = models.DateTimeField(null=True, blank=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username']
     
     def __str__(self):
         return self.username
