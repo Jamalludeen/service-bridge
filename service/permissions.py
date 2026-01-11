@@ -1,18 +1,18 @@
 from rest_framework.permissions import BasePermission
 
-
-class IsAdminUser(BasePermission):
+class IsProfessionalOwnerOrIsAdmin(BasePermission):
     def has_permission(self, request, view):
-        return request.user.role == "admin"
-    
+        # Must be authenticated AND role must be valid
+        return (
+            request.user.is_authenticated and
+            request.user.role in ("admin", "professional")
+        )
 
-class IsProfessionalUser(BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.user.role == "admin":
             return True
-        
+
         if request.user.role == "professional":
-            result = obj.professional == request.user
-            return result
-        
+            return obj.professional == request.user
+
         return False
