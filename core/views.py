@@ -22,7 +22,7 @@ from datetime import timedelta
 import secrets
 import re
 
-from .signals import otp_verified
+from .signals import otp_verified, create_profile
 from .throttles import UserAuthThrottle, OTPVerifyThrottle
 from .serializers import LoginSerializer
 
@@ -407,6 +407,9 @@ class VerifyOTPView(APIView):
             
             # send a success email to the user upon successfully creation of account
             otp_verified.send(sender=User, user=user)
+
+            # create associated user's profile
+            create_profile.send(sender=User, user=user)
 
             return Response(
                 {"message": "You account has been verified successfully!"},

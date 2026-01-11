@@ -4,7 +4,9 @@ from django.conf import settings
 from django.utils import timezone
 
 from .email_templates import WELCOME_EMAIL_TEMPLATE
-from .signals import otp_verified
+from .signals import otp_verified, create_profile
+from professional.models import Professional
+from customer.models import CustomerProfile
 
 @receiver(otp_verified)
 def send_success_email(sender, user, **kwargs):
@@ -25,3 +27,14 @@ def send_success_email(sender, user, **kwargs):
     
     email_msg.attach_alternative(html_content, "text/html")
     email_msg.send()
+
+
+@receiver(create_profile)
+def create_user_profile(sender, user, **kwargs):
+    if user.role == "professional":
+        Professional.objects.create(user=user)
+    
+    if user.role == "customer":
+        CustomerProfile.objects.create(user=user)
+    
+    
