@@ -7,3 +7,5 @@ class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
     serializer_class = ServiceSerializer
 
+    def get_queryset(self):
+        return self.queryset.filter(is_active=True)
