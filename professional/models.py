@@ -79,7 +79,7 @@ class Professional(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.get_full_name()} ({self.verification_status})"
+        return f"{self.user.username} ({self.verification_status})"
     
 
 
