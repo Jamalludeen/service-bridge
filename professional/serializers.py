@@ -1,9 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+import re
 
 from .models import ServiceCategory, Professional
 
-import re
 User = get_user_model()
 
 

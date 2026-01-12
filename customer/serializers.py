@@ -1,5 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+
+import re 
+
 from .models import CustomerProfile
 
 User = get_user_model()
@@ -44,11 +47,27 @@ class CustomerUpdateProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomerProfile
         fields = ["user", "profile_image", "city", "district", "detailed_address"]
-
+    
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user", None)
 
         if user_data:
+            email: str = user_data.get("email", "")
+            phone: str = user_data.get("phone", "")
+
+            if email and not email.endswith("@gmail.com"):
+                raise serializers.ValidationError({
+                    "email": "Please enter a valid Gmail address"
+                })
+
+            # Afghanistan phone validation
+            if phone:
+                afghan_phone_regex = r'^\+93\d{9}$'
+                if not re.match(afghan_phone_regex, phone):
+                    raise serializers.ValidationError({
+                        "phone": "Phone number must be a valid Afghanistan number starting with +93"
+                    })
+
             user = instance.user
             for attr, value in user_data.items():
                 setattr(user, attr, value)
