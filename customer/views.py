@@ -7,7 +7,7 @@ from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
-from .serializers import CustomerProfileSerializer, CustomerUpdateProfileSerializer
+from .serializers import CustomerProfileSerializer, CustomerUpdateProfileSerializer, CustomerRetrieveProfileSerializer
 from .permissions import IsCustomerOwner
 from .models import CustomerProfile
 from .throttles import CustomerProfileThrottle
@@ -22,10 +22,10 @@ class CustomerProfileView(APIView):
     # throttle_classes = [CustomerProfileThrottle]
 
     # if the user sends a get request to just return his/her profile data
-    def get(self,request):
+    def get(self, request):
         self.check_permissions(request)
         profile = get_object_or_404(CustomerProfile, user=request.user)
-        serializer = CustomerProfileSerializer(profile)
+        serializer = CustomerRetrieveProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     # if a post request is send by users we handle profile creation for them
