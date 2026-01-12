@@ -371,6 +371,7 @@ class RegisterView(APIView):
 class VerifyOTPView(APIView):
     # throttle_classes = [OTPVerifyThrottle]
     
+    @transaction.atomic
     def post(self, request):
         email = request.data.get("email")
         otp_input = request.data.get("otp")
