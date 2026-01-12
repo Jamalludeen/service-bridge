@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 
-from .serializers import ServiceCategorySerializer, ProfessionalCreateSerializer, ProfessionalUpdateSerializer
+from .serializers import ServiceCategorySerializer, ProfessionalCreateSerializer, ProfessionalUpdateSerializer, ProfessionalRetrieveSerializer
 from .models import ServiceCategory, Professional
 from .permissions import IsProfessionalOwner
 from .throttles import ProfessionalProfileThrottle
@@ -41,7 +41,7 @@ class ProfessionalProfileView(APIView):
             profile = get_object_or_404(Professional, user=request.user)
             self.check_object_permissions(request, profile)
 
-            serializer = ProfessionalCreateSerializer(profile)
+            serializer = ProfessionalRetrieveSerializer(profile)
             return Response(
                 {"data": serializer.data},
                 status=status.HTTP_200_OK
@@ -50,7 +50,7 @@ class ProfessionalProfileView(APIView):
         # ADMIN USER
         if request.user.role == "admin":
             professionals = Professional.objects.all()
-            serializer = ProfessionalCreateSerializer(professionals, many=True)
+            serializer = ProfessionalRetrieveSerializer(professionals, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         return Response(
