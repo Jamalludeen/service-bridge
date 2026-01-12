@@ -7,6 +7,7 @@ urlpatterns = [
     path("admin-register/", views.RegisterView.as_view(), {"role":"admin"}, name="admin_register"),
     path("verify-otp/", views.VerifyOTPView.as_view(), name="verify_otp"),
     path("login/", views.LoginView.as_view(), name="login"),
+    path("otp-new/", views.RequestNewOTPView.as_view(), name="new_otp"),
 
     # Utility endpoints (unchanged)
     path("change-password/", views.ChangePasswordView.as_view(), name="change_password"),

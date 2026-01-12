@@ -38,7 +38,8 @@ class Professional(models.Model):
     city = models.CharField(max_length=50, blank=True, null=True)
     bio = models.TextField(blank=True, null=True)
     years_of_experience = models.PositiveIntegerField(
-        validators=[MinValueValidator(0)]
+        validators=[MinValueValidator(0)],
+        default=0
     )
 
     services = models.ManyToManyField(ServiceCategory, related_name="professionals")

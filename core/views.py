@@ -418,3 +418,40 @@ class VerifyOTPView(APIView):
                 )
         else:
             return Response({"error": "Invalid OTP"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class RequestNewOTPView(APIView):
+    def post(self, request):
+        email: str = request.data.get("email", "")
+        user = get_object_or_404(User, email=email)
+
+        if not email:
+            return Response(
+                {"message": "Please enter a valid email"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not email.endswith("@gmail.com"):
+            return Response(
+                {"message": "Please enter a valid Google account"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not user:
+            return Response(
+                {"message": "User has not requested for OTP"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        otp = generate_otp()
+        user.otp = otp
+        user.otp_created_at = timezone.now()
+        user.is_verfied = False
+        user.save()
+
+        send_otp_email(email=email, otp=otp)
+        return Response(
+            {"message": "A new OTP code has been sent to your email."},
+            status=status.HTTP_202_ACCEPTED
+        )
+        
