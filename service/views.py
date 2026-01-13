@@ -2,10 +2,12 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
 
+from django.shortcuts import get_object_or_404
+
 from .serializers import AdminServiceSerializer, ProfessionalServiceSerializer
 from .models import Service
 from .permissions import IsProfessionalOwnerOrIsAdmin
-
+from professional.models import Professional
 
 class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
@@ -21,4 +23,22 @@ class ServiceViewSet(ModelViewSet):
         return ProfessionalServiceSerializer
 
     def get_queryset(self):
-        return self.queryset.filter(is_active=True)
+        user = self.request.user
+
+        # Base optimized queryset
+        queryset = Service.objects.select_related(
+            "professional",
+            "professional__user",
+            "category"
+        )
+        for query in queryset:
+            print("query: ", query)
+
+        if user.is_staff or user.role == "admin":
+            return queryset
+
+        if user.role == "professional":
+            return queryset.filter(professional__user=user)
+
+        # Safe fallback
+        return Service.objects.none()
