@@ -25,18 +25,19 @@ class ServiceViewSet(ModelViewSet):
     def get_queryset(self):
         user = self.request.user
 
-        # Base optimized queryset
         queryset = Service.objects.select_related(
             "professional",
             "professional__user",
             "category"
         )
 
-        if user.is_staff or user.role == "admin":
+        if user.role == "admin" or user.is_staff:
             return queryset
 
         if user.role == "professional":
             return queryset.filter(professional__user=user)
 
-        # Safe fallback
-        return Service.objects.all().filter(is_active=True)
+        if user.role == "customer":
+            return queryset.filter(is_active=True)
+
+        return Service.objects.none()
