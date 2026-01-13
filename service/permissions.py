@@ -5,11 +5,11 @@ class IsProfessionalOwnerOrIsAdmin(BasePermission):
         if not request.user.is_authenticated:
             return False
 
-        # Customers: read-only access
+        # Customers: read-only only
         if request.user.role == "customer":
             return request.method in SAFE_METHODS
 
-        # Admin & professional
+        # Admin & Professional: allow all methods
         return request.user.role in ("admin", "professional")
 
     def has_object_permission(self, request, view, obj):
@@ -17,7 +17,7 @@ class IsProfessionalOwnerOrIsAdmin(BasePermission):
         if request.user.role == "admin":
             return True
 
-        # Professional: only own services
+        # Professional: can update/delete ONLY own services
         if request.user.role == "professional":
             return obj.professional.user == request.user
 
