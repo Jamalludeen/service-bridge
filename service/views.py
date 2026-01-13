@@ -31,8 +31,6 @@ class ServiceViewSet(ModelViewSet):
             "professional__user",
             "category"
         )
-        for query in queryset:
-            print("query: ", query)
 
         if user.is_staff or user.role == "admin":
             return queryset

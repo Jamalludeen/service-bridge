@@ -13,6 +13,6 @@ class IsProfessionalOwnerOrIsAdmin(BasePermission):
             return True
 
         if request.user.role == "professional":
-            return obj.professional == request.user
+            return obj.professional.user == request.user
 
         return False
