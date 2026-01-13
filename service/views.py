@@ -11,7 +11,7 @@ from professional.models import Professional
 
 class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
-    permission_classes = [IsAuthenticated, IsProfessionalOwnerOrIsAdmin]
+    permission_classes = [IsProfessionalOwnerOrIsAdmin, IsAuthenticated]
     authentication_classes = [TokenAuthentication]
 
     def get_serializer_class(self):
@@ -39,4 +39,4 @@ class ServiceViewSet(ModelViewSet):
             return queryset.filter(professional__user=user)
 
         # Safe fallback
-        return Service.objects.none()
+        return Service.objects.all().filter(is_active=True)
