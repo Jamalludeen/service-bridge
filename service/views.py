@@ -4,6 +4,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.filters import SearchFilter
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -18,13 +19,14 @@ class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
     permission_classes = [IsProfessionalOwnerOrIsAdmin, IsAuthenticated]
     authentication_classes = [TokenAuthentication]
-    filter_backends = [DjangoFilterBackend]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
     filterset_class = ServiceFilter
+    search_fields = ['professional__user__username', 'title', 'category__name']
 
     def get_serializer_class(self):
         user = self.request.user
 
-        if user.is_staff or user.role == "admin":
+        if user.role == "admin":
             return AdminServiceSerializer
 
         return ProfessionalServiceSerializer
