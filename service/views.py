@@ -5,6 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
+from django.shortcuts import get_object_or_404
+
 from .serializers import AdminServiceSerializer, ProfessionalServiceSerializer
 from .models import Service
 from .permissions import IsProfessionalOwnerOrIsAdmin, IsAdminUser
@@ -43,18 +45,37 @@ class ServiceViewSet(ModelViewSet):
 
         return Service.objects.none()
     
-    @action(detail=True, methods=["GET", "PATCH"], authentication_classes=[IsAdminUser])
+    @action(detail=True, methods=["GET"], permission_classes=[IsAdminUser])
     def active(self, request, pk=None):
-        queryset = Service.objects.filter(is_active=False)
-        for query in queryset:
-            print("Before: ", query.is_active)
-            query.is_active = True
+        service = get_object_or_404(Service, pk=pk)
+        if service.is_active:
+            return Response(
+                {"message": "Service is already active"},
+                status=status.HTTP_200_OK
+            )
         
-        for query in queryset:
-            print("after: ", query.is_active)
-        
+        service.is_active = True
+        service.save()
         return Response(
-            {"message": "All services are now active"},
+            {"message": "Service activated"},
             status=status.HTTP_200_OK
         )
+    
+    @action(detail=True, methods=["GET"], permission_classes=[IsAdminUser])
+    def disable(self, request, pk=None):
+        service = get_object_or_404(Service, pk=pk)
+        
+        if service.is_active:
+            service.is_active = False
+            service.save()
+            return Response(
+                {"message": "Service deactivated"},
+                status=status.HTTP_200_OK
+            )
+    
+        return Response(
+            {"message": "Service is already disables"},
+            status=status.HTTP_200_OK
+        )
+        
         
