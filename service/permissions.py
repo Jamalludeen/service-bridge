@@ -1,13 +1,21 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
-class IsAdminUser(BasePermission):
+class IsAdminUserOrProfessionalOwner(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user
             and request.user.is_authenticated
-            and request.user.role == "admin"
+            and (request.user.role == "admin" or request.user.role == "professional")
         )
+    
+    def has_object_permission(self, request, view, obj):
+        if request.user.role == "admin":
+            return True
+        
+        if request.user.role == "professional":
+            return obj.professional.user == request.user
+        return False
 
 
 class IsProfessionalOwnerOrIsAdmin(BasePermission):

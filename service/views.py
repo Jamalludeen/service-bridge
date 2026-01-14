@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 
 from .serializers import AdminServiceSerializer, ProfessionalServiceSerializer
 from .models import Service
-from .permissions import IsProfessionalOwnerOrIsAdmin, IsAdminUser
+from .permissions import IsProfessionalOwnerOrIsAdmin, IsAdminUserOrProfessionalOwner
 
 
 class ServiceViewSet(ModelViewSet):
@@ -45,7 +45,7 @@ class ServiceViewSet(ModelViewSet):
 
         return Service.objects.none()
     
-    @action(detail=True, methods=["GET"], permission_classes=[IsAdminUser])
+    @action(detail=True, methods=["GET"], permission_classes=[IsAdminUserOrProfessionalOwner])
     def active(self, request, pk=None):
         service = get_object_or_404(Service, pk=pk)
         if service.is_active:
@@ -61,7 +61,7 @@ class ServiceViewSet(ModelViewSet):
             status=status.HTTP_200_OK
         )
     
-    @action(detail=True, methods=["GET"], permission_classes=[IsAdminUser])
+    @action(detail=True, methods=["GET"], permission_classes=[IsAdminUserOrProfessionalOwner])
     def disable(self, request, pk=None):
         service = get_object_or_404(Service, pk=pk)
         
