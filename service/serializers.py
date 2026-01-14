@@ -2,13 +2,33 @@ from rest_framework import serializers
 from .models import Service, Professional
 
 
+class ProfessionalServiceSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source="user.username", read_only=True)
+    first_name = serializers.CharField(source="user.first_name", read_only=True)
+    last_name = serializers.CharField(source="user.last_name", read_only=True)
+
+    class Meta:
+        model = Professional
+        fields = [
+            "user",
+            "username",
+            "first_name",
+            "last_name",
+        ]
+
+
 class AdminServiceSerializer(serializers.ModelSerializer):
+    category = serializers.CharField(source="category.name", read_only=True)
+
     class Meta:
         model = Service
-        fields = ["id", "professional", "category", "title", "description", "pricing_type", "price_per_unit", "is_active"]
+        fields = ["id", "professional", "category_name", "title", "description", "pricing_type", "price_per_unit", "is_active"]
 
 
 class ProfessionalServiceSerializer(serializers.ModelSerializer):
+    professional = ProfessionalServiceSerializer(read_only=True)
+    category = serializers.CharField(source="category.name", read_only=True)
+
     class Meta:
         model = Service
         fields = [

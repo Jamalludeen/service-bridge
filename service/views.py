@@ -47,34 +47,39 @@ class ServiceViewSet(ModelViewSet):
     
     @action(detail=True, methods=["GET"], permission_classes=[IsAdminUserOrProfessionalOwner])
     def active(self, request, pk=None):
+
         service = get_object_or_404(Service, pk=pk)
+        serializer = ProfessionalServiceSerializer(instance=service)
+
         if service.is_active:
             return Response(
-                {"message": "Service is already active"},
+                {"message": "Service is already active", "data": serializer.data},
                 status=status.HTTP_200_OK
             )
         
         service.is_active = True
         service.save()
+        serializer = ProfessionalServiceSerializer(instance=service)
+
         return Response(
-            {"message": "Service activated"},
+            {"message": "Service activated", "data": serializer.data},
             status=status.HTTP_200_OK
         )
     
     @action(detail=True, methods=["GET"], permission_classes=[IsAdminUserOrProfessionalOwner])
     def disable(self, request, pk=None):
         service = get_object_or_404(Service, pk=pk)
-        
+        serializer = ProfessionalServiceSerializer(instance=service)
         if service.is_active:
             service.is_active = False
             service.save()
             return Response(
-                {"message": "Service deactivated"},
+                {"message": "Service deactivated", "data": serializer.data},
                 status=status.HTTP_200_OK
             )
     
         return Response(
-            {"message": "Service is already disables"},
+            {"message": "Service is already disables", "data": serializer.data},
             status=status.HTTP_200_OK
         )
         
