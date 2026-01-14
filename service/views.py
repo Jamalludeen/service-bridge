@@ -1,13 +1,14 @@
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
-
-from django.shortcuts import get_object_or_404
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import status
 
 from .serializers import AdminServiceSerializer, ProfessionalServiceSerializer
 from .models import Service
-from .permissions import IsProfessionalOwnerOrIsAdmin
-from professional.models import Professional
+from .permissions import IsProfessionalOwnerOrIsAdmin, IsAdminUser
+
 
 class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
@@ -41,3 +42,19 @@ class ServiceViewSet(ModelViewSet):
             return queryset.filter(is_active=True)
 
         return Service.objects.none()
+    
+    @action(detail=True, methods=["GET", "PATCH"], authentication_classes=[IsAdminUser])
+    def active(self, request, pk=None):
+        queryset = Service.objects.filter(is_active=False)
+        for query in queryset:
+            print("Before: ", query.is_active)
+            query.is_active = True
+        
+        for query in queryset:
+            print("after: ", query.is_active)
+        
+        return Response(
+            {"message": "All services are now active"},
+            status=status.HTTP_200_OK
+        )
+        
