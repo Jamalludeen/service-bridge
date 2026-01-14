@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Service, Professional
+from professional.models import ServiceCategory
 
 
 class ProfessionalSerializer(serializers.ModelSerializer):
@@ -18,16 +19,18 @@ class ProfessionalSerializer(serializers.ModelSerializer):
 
 
 class AdminServiceSerializer(serializers.ModelSerializer):
-    category = serializers.CharField(source="category.name", read_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=ServiceCategory.objects.all())
+    category_name = serializers.CharField(source="category.name", read_only=True)
 
     class Meta:
         model = Service
-        fields = ["id", "professional", "category", "title", "description", "pricing_type", "price_per_unit", "is_active"]
+        fields = ["id", "professional", "category", "category_name", "title", "description", "pricing_type", "price_per_unit", "is_active"]
 
 
 class ProfessionalServiceSerializer(serializers.ModelSerializer):
     professional = ProfessionalSerializer(read_only=True)
-    category = serializers.CharField(source="category.name", read_only=True)
+    category = serializers.PrimaryKeyRelatedField(queryset=ServiceCategory.objects.all())
+    category_name = serializers.CharField(source="category.name", read_only=True)
 
     class Meta:
         model = Service
@@ -35,6 +38,7 @@ class ProfessionalServiceSerializer(serializers.ModelSerializer):
             "id",
             "professional",
             "category",
+            "category_name",
             "title",
             "description",
             "pricing_type",
