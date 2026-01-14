@@ -5,17 +5,21 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
+from django_filters.rest_framework import DjangoFilterBackend
+
 from django.db import transaction
 
 from .serializers import AdminServiceSerializer, ProfessionalServiceSerializer
 from .models import Service
 from .permissions import IsProfessionalOwnerOrIsAdmin, IsAdminUserOrProfessionalOwner
-
+from .filters import ServiceFilter
 
 class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
     permission_classes = [IsProfessionalOwnerOrIsAdmin, IsAuthenticated]
     authentication_classes = [TokenAuthentication]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ServiceFilter
 
     def get_serializer_class(self):
         user = self.request.user

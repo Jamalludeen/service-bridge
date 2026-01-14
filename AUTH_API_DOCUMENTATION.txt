@@ -1,0 +1,729 @@
+================================================================================
+        AUTHENTICATION API DOCUMENTATION - SERVICE BRIDGE PLATFORM
+================================================================================
+
+Version: 2.0
+Last Updated: January 2026
+Base URL: http://your-domain/auth/
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+1. Overview
+2. Authentication Flow
+3. API Endpoints
+4. Flutter Integration Examples
+5. Error Handling
+6. Security Features
+7. Testing Guide
+8. FAQ
+
+================================================================================
+1. OVERVIEW
+================================================================================
+
+The Service Bridge platform uses a unified email-first authentication flow
+with OTP-based 2-factor authentication. Every login requires OTP verification.
+
+KEY FEATURES:
+✓ Email-first authentication
+✓ OTP 2FA on every login
+✓ Role-based registration (Customer, Professional, Admin)
+✓ Session-based flow with 15-minute expiry
+✓ Account lockout after 5 failed attempts
+✓ Afghan phone number validation
+
+USER ROLES:
+- Customer: Service consumers
+- Professional: Service providers
+- Admin: Platform administrators
+
+================================================================================
+2. AUTHENTICATION FLOW
+================================================================================
+
+FLOW 1: NEW USER REGISTRATION (4 Steps)
+------------------------------------------------------------------------
+Step 1: Enter Email → OTP Sent
+Step 2: Verify OTP → Success
+Step 3: Fill Registration Form (username, password, phone, names)
+Step 4: Re-enter Password → Token Generated ✓
+
+Estimated Time: 2-3 minutes
+
+
+FLOW 2: EXISTING USER LOGIN (3 Steps)
+------------------------------------------------------------------------
+Step 1: Enter Email → OTP Sent
+Step 2: Verify OTP → Success
+Step 3: Enter Password → Token Generated ✓
+
+Estimated Time: 1-2 minutes
+
+================================================================================
+3. API ENDPOINTS
+================================================================================
+
+------------------------------------------------------------------------
+3.1 INITIATE AUTHENTICATION
+------------------------------------------------------------------------
+
+Description: Start authentication by providing email. System checks if user
+            exists and sends OTP.
+
+Endpoint: POST /auth/{role}/initiate/
+
+Role Options:
+  - /auth/customer/initiate/
+  - /auth/professional/initiate/
+  - /auth/admin/initiate/
+
+Request Headers:
+  Content-Type: application/json
+
+Request Body:
+  {
+    "email": "user@gmail.com"
+  }
+
+Validation:
+  - Email must end with @gmail.com
+  - Email is case-insensitive
+
+Success Response (200 OK):
+  {
+    "session_id": "K7mN9pQ2rT5vX8zA3bC6dE1fG4hJ7kL0mN3oP5qR7s",
+    "user_exists": false,
+    "message": "OTP sent to your email",
+    "next_step": "verify_otp"
+  }
+
+Error Response (400):
+  {
+    "email": ["Please enter a valid Gmail address."]
+  }
+
+IMPORTANT:
+  - Save session_id for subsequent requests
+  - Check user_exists to determine flow
+  - OTP valid for 5 minutes
+
+
+------------------------------------------------------------------------
+3.2 VERIFY OTP
+------------------------------------------------------------------------
+
+Description: Verify the OTP code received via email
+
+Endpoint: POST /auth/verify-otp/
+
+Request Headers:
+  Content-Type: application/json
+
+Request Body:
+  {
+    "session_id": "K7mN9pQ2rT5vX8zA3bC6dE1fG4hJ7kL0mN3oP5qR7s",
+    "otp": "123456"
+  }
+
+Validation:
+  - OTP must be 6 digits
+  - OTP must be numeric
+  - Session must be valid
+
+Success Response - New User (200 OK):
+  {
+    "session_id": "K7mN9pQ2rT5vX8zA3bC6dE1fG4hJ7kL0mN3oP5qR7s",
+    "user_exists": false,
+    "message": "OTP verified successfully",
+    "next_step": "complete_registration"
+  }
+
+Success Response - Existing User (200 OK):
+  {
+    "session_id": "K7mN9pQ2rT5vX8zA3bC6dE1fG4hJ7kL0mN3oP5qR7s",
+    "user_exists": true,
+    "message": "OTP verified successfully",
+    "next_step": "enter_password"
+  }
+
+Error Responses:
+
+  Invalid OTP (400):
+    {"message": "Invalid OTP"}
+
+  Expired OTP (400):
+    {"message": "OTP has expired. Please request a new one."}
+
+  Invalid Session (400):
+    {"message": "Invalid or expired session"}
+
+Rate Limiting:
+  Maximum 1 request per minute per IP
+
+
+------------------------------------------------------------------------
+3.3 COMPLETE REGISTRATION (New Users Only)
+------------------------------------------------------------------------
+
+Description: Provide registration details. Only for new users.
+
+Endpoint: POST /auth/complete-registration/
+
+Request Headers:
+  Content-Type: application/json
+
+Request Body:
+  {
+    "session_id": "K7mN9pQ2rT5vX8zA3bC6dE1fG4hJ7kL0mN3oP5qR7s",
+    "username": "john_doe",
+    "password": "SecurePass123!",
+    "phone": "0781234567",
+    "first_name": "John",
+    "last_name": "Doe"
+  }
+
+Field Requirements:
+  session_id  - Required - Session ID from previous step
+  username    - Required - Unique username (1-150 chars)
+  password    - Required - Min 8 chars, must pass validators
+  phone       - Required - Afghan mobile (07XXXXXXXX or +937XXXXXXXX)
+  first_name  - Optional - User's first name (1-150 chars)
+  last_name   - Optional - User's last name (1-150 chars)
+
+Phone Formats:
+  - 0781234567 (auto-converted to +93781234567)
+  - +93781234567
+  - Valid prefixes: 70-79
+
+Password Requirements:
+  - Minimum 8 characters
+  - Cannot be similar to username/email
+  - Cannot be entirely numeric
+  - Cannot be commonly used password
+
+Success Response (200 OK):
+  {
+    "session_id": "K7mN9pQ2rT5vX8zA3bC6dE1fG4hJ7kL0mN3oP5qR7s",
+    "message": "Registration data saved. Please confirm your password.",
+    "next_step": "confirm_password"
+  }
+
+Error Responses:
+
+  Username Taken (400):
+    {"username": ["Username already taken."]}
+
+  Phone Already Registered (400):
+    {"phone": ["Phone number already registered."]}
+
+  Invalid Phone (400):
+    {"phone": ["Phone must be valid Afghan number."]}
+
+  Weak Password (400):
+    {"password": [
+      "This password is too short. It must contain at least 8 characters.",
+      "This password is too common."
+    ]}
+
+
+------------------------------------------------------------------------
+3.4 AUTHENTICATE WITH PASSWORD
+------------------------------------------------------------------------
+
+Description: Final step - authenticate with password to receive token.
+            Works for both new and existing users.
+
+Endpoint: POST /auth/authenticate/
+
+Request Headers:
+  Content-Type: application/json
+
+Request Body:
+  {
+    "session_id": "K7mN9pQ2rT5vX8zA3bC6dE1fG4hJ7kL0mN3oP5qR7s",
+    "password": "SecurePass123!"
+  }
+
+Success Response (200 OK):
+  {
+    "token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b",
+    "user": {
+      "id": 42,
+      "username": "john_doe",
+      "email": "user@gmail.com",
+      "first_name": "John",
+      "last_name": "Doe",
+      "phone": "+93781234567",
+      "role": "customer",
+      "is_verified": true
+    },
+    "message": "Authentication successful"
+  }
+
+Token Usage:
+  Include in all authenticated requests:
+  Authorization: Token 9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b
+
+Error Responses:
+
+  Invalid Password (400):
+    {"message": "Invalid password"}
+
+  Account Locked (403):
+    {"message": "Account locked. Try again in 287 seconds."}
+
+  Too Many Attempts (403):
+    {"message": "Too many failed attempts. Account locked for 5 minutes."}
+
+  Password Mismatch (400):
+    {"message": "Password does not match"}
+
+Security:
+  - Account locks after 5 failed attempts
+  - Lockout duration: 5 minutes
+  - Counter resets on success
+
+
+------------------------------------------------------------------------
+3.5 RESEND OTP
+------------------------------------------------------------------------
+
+Description: Request new OTP if expired or not received
+
+Endpoint: POST /auth/resend-otp/
+
+Request Headers:
+  Content-Type: application/json
+
+Request Body:
+  {
+    "session_id": "K7mN9pQ2rT5vX8zA3bC6dE1fG4hJ7kL0mN3oP5qR7s"
+  }
+
+Success Response (200 OK):
+  {"message": "New OTP sent to your email"}
+
+Error Response (400):
+  {"message": "Invalid or expired session"}
+
+Usage Notes:
+  - Can be called before password authentication
+  - New OTP replaces old one
+  - Recommended: 30-second cooldown on frontend
+
+================================================================================
+4. FLUTTER INTEGRATION EXAMPLES
+================================================================================
+
+------------------------------------------------------------------------
+4.1 SETUP HTTP CLIENT
+------------------------------------------------------------------------
+
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+
+class AuthService {
+  static const String baseUrl = 'http://your-domain/auth';
+  String? sessionId;
+  bool? userExists;
+}
+
+
+------------------------------------------------------------------------
+4.2 INITIATE AUTHENTICATION
+------------------------------------------------------------------------
+
+Future<Map<String, dynamic>> initiateAuth(String email, String role) async {
+  final url = Uri.parse('$baseUrl/$role/initiate/');
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'email': email}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      sessionId = data['session_id'];
+      userExists = data['user_exists'];
+      return {'success': true, 'data': data};
+    } else {
+      final error = jsonDecode(response.body);
+      return {'success': false, 'error': error};
+    }
+  } catch (e) {
+    return {'success': false, 'error': 'Network error: $e'};
+  }
+}
+
+
+------------------------------------------------------------------------
+4.3 VERIFY OTP
+------------------------------------------------------------------------
+
+Future<Map<String, dynamic>> verifyOTP(String otp) async {
+  final url = Uri.parse('$baseUrl/verify-otp/');
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'session_id': sessionId, 'otp': otp}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {'success': true, 'data': data};
+    } else {
+      final error = jsonDecode(response.body);
+      return {'success': false, 'error': error};
+    }
+  } catch (e) {
+    return {'success': false, 'error': 'Network error: $e'};
+  }
+}
+
+
+------------------------------------------------------------------------
+4.4 COMPLETE REGISTRATION
+------------------------------------------------------------------------
+
+Future<Map<String, dynamic>> completeRegistration({
+  required String username,
+  required String password,
+  required String phone,
+  String? firstName,
+  String? lastName,
+}) async {
+  final url = Uri.parse('$baseUrl/complete-registration/');
+
+  try {
+    final body = {
+      'session_id': sessionId,
+      'username': username,
+      'password': password,
+      'phone': phone,
+    };
+
+    if (firstName != null && firstName.isNotEmpty) {
+      body['first_name'] = firstName;
+    }
+    if (lastName != null && lastName.isNotEmpty) {
+      body['last_name'] = lastName;
+    }
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return {'success': true, 'data': data};
+    } else {
+      final error = jsonDecode(response.body);
+      return {'success': false, 'error': error};
+    }
+  } catch (e) {
+    return {'success': false, 'error': 'Network error: $e'};
+  }
+}
+
+
+------------------------------------------------------------------------
+4.5 AUTHENTICATE PASSWORD
+------------------------------------------------------------------------
+
+Future<Map<String, dynamic>> authenticatePassword(String password) async {
+  final url = Uri.parse('$baseUrl/authenticate/');
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'session_id': sessionId, 'password': password}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      // Store token securely
+      final token = data['token'];
+      final user = data['user'];
+      await secureStorage.write(key: 'auth_token', value: token);
+      await secureStorage.write(key: 'user_data', value: jsonEncode(user));
+
+      return {'success': true, 'data': data};
+    } else {
+      final error = jsonDecode(response.body);
+      return {'success': false, 'error': error};
+    }
+  } catch (e) {
+    return {'success': false, 'error': 'Network error: $e'};
+  }
+}
+
+
+------------------------------------------------------------------------
+4.6 SECURE TOKEN STORAGE
+------------------------------------------------------------------------
+
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+final secureStorage = FlutterSecureStorage();
+
+// Store token
+await secureStorage.write(key: 'auth_token', value: token);
+
+// Retrieve token
+String? token = await secureStorage.read(key: 'auth_token');
+
+// Delete token (logout)
+await secureStorage.delete(key: 'auth_token');
+
+// Use token in authenticated requests
+Future<http.Response> getProfile() async {
+  final token = await secureStorage.read(key: 'auth_token');
+  return await http.get(
+    Uri.parse('http://your-domain/api/profile/'),
+    headers: {'Authorization': 'Token $token'},
+  );
+}
+
+================================================================================
+5. ERROR HANDLING
+================================================================================
+
+------------------------------------------------------------------------
+5.1 HTTP STATUS CODES
+------------------------------------------------------------------------
+
+200 - Success: Continue to next step
+400 - Bad Request: Show validation errors
+403 - Forbidden: Account locked or rate limited
+500 - Server Error: Show generic error, retry later
+
+
+------------------------------------------------------------------------
+5.2 COMMON ERROR SCENARIOS
+------------------------------------------------------------------------
+
+1. Invalid Email Format
+   {"email": ["Please enter a valid Gmail address."]}
+   Solution: Show error, ask user to correct
+
+2. Invalid OTP
+   {"message": "Invalid OTP"}
+   Solution: Show error, allow retry (max 5), offer resend
+
+3. Expired OTP
+   {"message": "OTP has expired. Please request a new one."}
+   Solution: Auto-trigger resend or show resend button
+
+4. Expired Session
+   {"message": "Invalid or expired session"}
+   Solution: Restart from Step 1
+
+5. Username Taken
+   {"username": ["Username already taken."]}
+   Solution: Show error, suggest alternatives
+
+6. Account Locked
+   {"message": "Account locked. Try again in 287 seconds."}
+   Solution: Show countdown timer, disable login
+
+7. Network Error
+   Solution: Show "Check internet connection", add retry button
+
+
+------------------------------------------------------------------------
+5.3 FLUTTER ERROR HANDLING EXAMPLE
+------------------------------------------------------------------------
+
+void handleError(dynamic error) {
+  if (error is Map) {
+    if (error.containsKey('message')) {
+      showSnackbar(error['message']);
+    } else if (error.containsKey('email')) {
+      showSnackbar(error['email'][0]);
+    } else if (error.containsKey('username')) {
+      showSnackbar(error['username'][0]);
+    } else if (error.containsKey('password')) {
+      showSnackbar(error['password'].join('\n'));
+    }
+  } else if (error is String) {
+    showSnackbar(error);
+  }
+}
+
+// Usage
+final result = await authService.initiateAuth(email, role);
+if (!result['success']) {
+  handleError(result['error']);
+}
+
+================================================================================
+6. SECURITY FEATURES
+================================================================================
+
+OTP SECURITY:
+  - Expiry: 5 minutes
+  - Length: 6 digits
+  - Delivery: Email only
+  - One-time use
+  - Rate limiting: 1 verification/minute
+
+PASSWORD SECURITY:
+  - Min length: 8 characters
+  - Django validators (strength check)
+  - Hashed with PBKDF2
+  - Max 5 failed attempts
+
+ACCOUNT LOCKOUT:
+  - Trigger: 5 failed attempts
+  - Duration: 5 minutes
+  - Auto reset after timeout
+  - Counter reset on success
+
+SESSION SECURITY:
+  - Expiry: 15 minutes
+  - Server-side cache storage
+  - Cryptographically secure IDs
+  - Single use (cleared after token)
+
+TOKEN SECURITY:
+  - Format: 40-char hexadecimal
+  - Database storage
+  - Refresh on each login
+  - Deleted on logout
+
+RATE LIMITING:
+  - OTP verification: 1/min
+  - Password auth: 10/min
+  - Initiate auth: 10/hour
+
+================================================================================
+7. TESTING GUIDE
+================================================================================
+
+------------------------------------------------------------------------
+7.1 MANUAL TESTING CHECKLIST
+------------------------------------------------------------------------
+
+NEW USER REGISTRATION:
+  □ Enter valid Gmail address
+  □ Receive OTP via email
+  □ Enter correct OTP
+  □ Fill registration form
+  □ Re-enter password
+  □ Receive token
+
+EXISTING USER LOGIN:
+  □ Enter registered email
+  □ Receive OTP via email
+  □ Enter correct OTP
+  □ Enter correct password
+  □ Receive token
+
+ERROR CASES:
+  □ Invalid email format → Validation error
+  □ Wrong OTP → Error message
+  □ Wait 6 minutes → OTP expires
+  □ Duplicate username → Error
+  □ Weak password → Validation errors
+  □ Wrong password 5x → Account locked
+  □ Wait 16 minutes → Session expires
+
+
+------------------------------------------------------------------------
+7.2 TEST DATA
+------------------------------------------------------------------------
+
+Valid Phone Numbers:
+  0781234567
+  0791234567
+  +93781234567
+  +93791234567
+
+Invalid Phone Numbers:
+  1234567890 (not Afghan)
+  0781234 (too short)
+  0691234567 (invalid prefix)
+
+Valid Email:
+  testuser@gmail.com
+  test.user@gmail.com
+
+Invalid Email:
+  test@yahoo.com (not Gmail)
+  testuser@outlook.com (not Gmail)
+
+================================================================================
+8. FREQUENTLY ASKED QUESTIONS
+================================================================================
+
+Q1: What if user closes app mid-flow?
+A: Session active for 15 minutes. User can continue if they have session_id.
+   Otherwise, restart from Step 1.
+
+Q2: Can I use custom email domain?
+A: No, only Gmail (@gmail.com) currently supported.
+
+Q3: How long is auth token valid?
+A: Tokens don't expire but are replaced on each login.
+
+Q4: User doesn't receive OTP?
+A: Use Resend OTP endpoint. Check spam folder.
+
+Q5: Can I customize OTP email?
+A: Yes, template at core/email_templates.py on backend.
+
+Q6: Multiple device logins?
+A: Each login creates new token, deleting old one. User logged out elsewhere.
+
+Q7: How to logout?
+A: Call /auth/logout/ with token in header.
+
+Example:
+  Future<void> logout() async {
+    final token = await secureStorage.read(key: 'auth_token');
+    await http.post(
+      Uri.parse('http://your-domain/auth/logout/'),
+      headers: {'Authorization': 'Token $token'},
+    );
+    await secureStorage.delete(key: 'auth_token');
+  }
+
+================================================================================
+CHANGELOG
+================================================================================
+
+Version 2.0 (January 2026)
+  ✓ Unified authentication flow
+  ✓ OTP 2FA on every login
+  ✓ Session-based state management
+  ✓ Account lockout after failures
+  ✓ Optional first_name and last_name
+  ✓ Resend OTP functionality
+
+Version 1.0 (Previous)
+  - Basic registration and login
+  - Single-step OTP for registration only
+
+================================================================================
+SUPPORT
+================================================================================
+
+For technical support:
+  - Backend Team: Contact Django developer
+  - API Issues: Check logs at general.log
+  - Documentation: Keep synced with API changes
+
+================================================================================
+                           DOCUMENT END
+================================================================================
+Last Updated: January 2026
