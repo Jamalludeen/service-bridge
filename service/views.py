@@ -5,7 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
-from django.shortcuts import get_object_or_404
+from django.db import transaction
 
 from .serializers import AdminServiceSerializer, ProfessionalServiceSerializer
 from .models import Service
@@ -45,42 +45,46 @@ class ServiceViewSet(ModelViewSet):
 
         return Service.objects.none()
     
-    @action(detail=True, methods=["GET"], permission_classes=[IsAdminUserOrProfessionalOwner])
+    @action(detail=True, methods=["POST"], permission_classes=[IsAdminUserOrProfessionalOwner])
     def active(self, request, pk=None):
+        service = self.get_object()
 
-        service = get_object_or_404(Service, pk=pk)
-        serializer = ProfessionalServiceSerializer(instance=service)
-
+        serializer = self.get_serializer(instance=service)
         if service.is_active:
             return Response(
                 {"message": "Service is already active", "data": serializer.data},
-                status=status.HTTP_200_OK
+                status=status.HTTP_200_OK,
             )
-        
-        service.is_active = True
-        service.save()
-        serializer = ProfessionalServiceSerializer(instance=service)
 
+        with transaction.atomic():
+            service.is_active = True
+            service.save()
+
+        serializer = self.get_serializer(instance=service)
         return Response(
             {"message": "Service activated", "data": serializer.data},
-            status=status.HTTP_200_OK
+            status=status.HTTP_200_OK,
         )
     
-    @action(detail=True, methods=["GET"], permission_classes=[IsAdminUserOrProfessionalOwner])
+    @action(detail=True, methods=["POST"], permission_classes=[IsAdminUserOrProfessionalOwner])
     def disable(self, request, pk=None):
-        service = get_object_or_404(Service, pk=pk)
-        serializer = ProfessionalServiceSerializer(instance=service)
-        if service.is_active:
+        service = self.get_object()
+        serializer = self.get_serializer(instance=service)
+
+        if not service.is_active:
+            return Response(
+                {"message": "Service is already disabled", "data": serializer.data},
+                status=status.HTTP_200_OK,
+            )
+
+        with transaction.atomic():
             service.is_active = False
             service.save()
-            return Response(
-                {"message": "Service deactivated", "data": serializer.data},
-                status=status.HTTP_200_OK
-            )
-    
+
+        serializer = self.get_serializer(instance=service)
         return Response(
-            {"message": "Service is already disables", "data": serializer.data},
-            status=status.HTTP_200_OK
+            {"message": "Service deactivated", "data": serializer.data},
+            status=status.HTTP_200_OK,
         )
         
         
