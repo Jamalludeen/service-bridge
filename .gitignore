@@ -4,3 +4,9 @@ db.sqlite3
 ./AUTH_API_DOCUMENTATION.md
 ./AUTH_API_DOCUMENTATION.txt
 documentation/
+.claude
+core/__pycache__
+customer/__pycache__
+professional/__pycache__
+service/__pycache__
+serviceBridge/__pycache__

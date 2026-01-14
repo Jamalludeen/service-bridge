@@ -1,30 +1,28 @@
-from django.utils import timezone
 from django.core.mail import send_mail, EmailMultiAlternatives
-from django.conf import settings
 from django.utils.module_loading import import_string
-from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
-from django.db import transaction
-from django.core.cache import cache
+from django.contrib.auth import get_user_model
 from django.contrib.auth import authenticate
+from django.utils import timezone
+from django.conf import settings
+from django.db import transaction
 
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.authtoken.models import Token
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.authtoken.models import Token
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
 
 from .email_templates import OTP_EMAIL_TEMPLATE, WELCOME_EMAIL_TEMPLATE
 
 from datetime import timedelta
 import secrets
-import re
 
 from .signals import otp_verified, create_profile
-from .throttles import UserAuthThrottle, OTPVerifyThrottle
-from .serializers import LoginSerializer
+# from .throttles import UserAuthThrottle, OTPVerifyThrottle
+
 
 User = get_user_model()
 UserSerializer = import_string(settings.USER_SERIALIZER)

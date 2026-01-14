@@ -1,7 +1,7 @@
+from django.core.mail import EmailMultiAlternatives
 from django.dispatch import receiver
-from django.core.mail import send_mail, EmailMultiAlternatives
-from django.conf import settings
 from django.utils import timezone
+from django.conf import settings
 
 from .email_templates import WELCOME_EMAIL_TEMPLATE
 from .signals import otp_verified, create_profile
