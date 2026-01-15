@@ -40,7 +40,7 @@ class ServiceViewSet(ModelViewSet):
             "professional__user",
             "category"
         )
-
+        queryset.get
         if user.role == "admin" or user.is_staff:
             return queryset
 

@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_filters',
+    'debug_toolbar',
     'rest_framework',
     'rest_framework.authtoken',
     'core',
@@ -48,6 +49,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+     "debug_toolbar.middleware.DebugToolbarMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -121,6 +123,12 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+INTERNAL_IPS = [
+    "127.0.0.1",
+    "localhost", # Add if accessing via localhost
+]
+
 
 
 # Internationalization

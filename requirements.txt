@@ -4,4 +4,5 @@ django-cors-headers=4.7.0
 pillow=11.2.1
 psycopg2-binary=2.9.11
 requests=2.32.3
-django-filter
+django-filters=25.2
+django-debug-toolbar=6.1.0
