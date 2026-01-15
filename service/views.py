@@ -21,7 +21,7 @@ class ServiceViewSet(ModelViewSet):
     authentication_classes = [TokenAuthentication]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ServiceFilter
-    search_fields = ['professional__user__username', 'title', 'category__name']
+    search_fields = ['title', 'category__name']
     ordering_fields = ["title", "category__name", "price_per_unit"]
 
     def get_serializer_class(self):
