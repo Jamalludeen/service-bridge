@@ -82,3 +82,26 @@ class BookingCreateSerializer(serializers.ModelSerializer):
         )
 
         return booking
+
+
+
+class BookingListSerializer(serializers.ModelSerializer):
+    """For listing bookings"""
+    service_title = serializers.CharField(source='service.title', read_only=True)
+    professional_name = serializers.SerializerMethodField()
+    customer_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Booking
+        fields = [
+            'id', 'service_title', 'professional_name', 'customer_name',
+            'scheduled_date', 'scheduled_time', 'status',
+            'estimated_price', 'final_price', 'city', 'created_at'
+        ]
+
+    def get_professional_name(self, obj):
+        return obj.professional.user.get_full_name() or obj.professional.user.email
+
+    def get_customer_name(self, obj):
+        return obj.customer.user.get_full_name() or obj.customer.user.email
+
