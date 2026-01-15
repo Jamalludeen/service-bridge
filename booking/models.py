@@ -97,3 +97,25 @@ class Booking(models.Model):
     def __str__(self):
         return f"Booking #{self.id} - {self.service.title} ({self.status})"
 
+
+
+class BookingStatusHistory(models.Model):
+    """Track all status changes for audit trail"""
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name='status_history'
+    )
+    from_status = models.CharField(max_length=20, blank=True)
+    to_status = models.CharField(max_length=20)
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name_plural = 'Booking status histories'
