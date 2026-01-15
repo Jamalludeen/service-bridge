@@ -7,7 +7,6 @@ class ServiceFilter(FilterSet):
     class Meta:
         model = Service
         fields = {
-            'professional': ['exact'],
             'category': ['exact'],
             'pricing_type': ['exact'],
             'price_per_unit': ['lt', 'gt']
