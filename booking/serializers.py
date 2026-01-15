@@ -100,8 +100,51 @@ class BookingListSerializer(serializers.ModelSerializer):
         ]
 
     def get_professional_name(self, obj):
-        return obj.professional.user.get_full_name() or obj.professional.user.email
+        return obj.professional.user.get_full_name() or obj.professional.user.username
 
     def get_customer_name(self, obj):
-        return obj.customer.user.get_full_name() or obj.customer.user.email
+        return obj.customer.user.get_full_name() or obj.customer.user.username
 
+
+
+class BookingDetailSerializer(serializers.ModelSerializer):
+    """For detailed booking view"""
+    service = CustomerServiceSerializer(read_only=True)
+    professional = ProfessionalSerializer(read_only=True)
+    customer = CustomerRetrieveProfileSerializer(read_only=True)
+    status_history = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Booking
+        fields = [
+            'id', 'customer', 'professional', 'service',
+            'scheduled_date', 'scheduled_time',
+            'address', 'city', 'latitude', 'longitude',
+            'special_instructions', 'quantity',
+            'estimated_price', 'final_price',
+            'status', 'rejection_reason', 'cancellation_reason',
+            'created_at', 'accepted_at', 'started_at', 'completed_at',
+            'status_history'
+        ]
+
+    def get_status_history(self, obj):
+        history = obj.status_history.all()[:10]
+        return [
+            {
+                'from_status': h.from_status,
+                'to_status': h.to_status,
+                'note': h.note,
+                'created_at': h.created_at
+            }
+            for h in history
+        ]
+
+
+
+class BookingStatusUpdateSerializer(serializers.Serializer):
+    """For status updates with optional fields"""
+    rejection_reason = serializers.CharField(required=False, allow_blank=True)
+    cancellation_reason = serializers.CharField(required=False, allow_blank=True)
+    final_price = serializers.DecimalField(
+        max_digits=10, decimal_places=2, required=False
+    )
