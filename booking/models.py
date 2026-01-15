@@ -85,6 +85,15 @@ class Booking(models.Model):
     started_at = models.DateTimeField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['scheduled_date']),
+            models.Index(fields=['customer', 'status']),
+            models.Index(fields=['professional', 'status']),
+        ]
+
     def __str__(self):
         return f"Booking #{self.id} - {self.service.title} ({self.status})"
 
