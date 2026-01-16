@@ -3,8 +3,8 @@ from rest_framework import serializers
 from django.utils import timezone
 
 from .models import Booking, BookingStatusHistory
-from service.serializers import CustomerServiceSerializer
-from professional.serializers import ProfessionalSerializer
+from service.serializers import ProfessionalServiceSerializer
+from professional.serializers import ProfessionalRetrieveSerializer
 from customer.serializers import CustomerRetrieveProfileSerializer
 
 
@@ -109,8 +109,8 @@ class BookingListSerializer(serializers.ModelSerializer):
 
 class BookingDetailSerializer(serializers.ModelSerializer):
     """For detailed booking view"""
-    service = CustomerServiceSerializer(read_only=True)
-    professional = ProfessionalSerializer(read_only=True)
+    service = ProfessionalServiceSerializer(read_only=True)
+    professional = ProfessionalRetrieveSerializer(read_only=True)
     customer = CustomerRetrieveProfileSerializer(read_only=True)
     status_history = serializers.SerializerMethodField()
 
