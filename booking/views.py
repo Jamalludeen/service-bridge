@@ -55,7 +55,7 @@ class BookingViewSet(ModelViewSet):
             return BookingCreateSerializer
         elif self.action == 'list':
             return BookingListSerializer
-        return BookingDetailSerializer()
+        return BookingDetailSerializer
     
     def get_permissions(self):
         if self.action == 'create':
