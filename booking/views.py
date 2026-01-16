@@ -1,9 +1,11 @@
 from django.shortcuts import render
+from django.utils import timezone
 
-from rest_framework.viewsets import ModelViewSet
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
+from rest_framework.decorators import action
 from rest_framework import status
 
 from .models import Booking, BookingStatusHistory
@@ -93,6 +95,36 @@ class BookingViewSet(ModelViewSet):
 
         return booking
     
+    @action(detail=True, methods=["POST"], permission_classes=[IsAuthenticated, CanAcceptBooking])
+    def accept(self, request, pk=None):
+        """Professional accepts a booking"""
+        booking = self.get_object()
+        self._update_status(
+            booking, 'ACCEPTED',request.user, 
+            note=f'Booking accepted by {booking.professional.user.username}',
+            accepted_at=timezone.now()
+        )
+        return Response({
+            "message": "Booking accepted successfully.",
+            "data": BookingDetailSerializer(booking).data
+        })
     
-    
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated, CanAcceptBooking])
+    def reject(self, request, pk=None):
+        """Professional can rejects a booking"""
+        booking = self.get_object()
+        serializer = BookingStatusUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        reason = serializer.validated_data.get('rejection_reason', '')
+
+        self._update_status(
+            booking, 'REJECTED', request.user,
+            note=f'Booking rejected: {reason}',
+            rejection_reason=reason
+        )
+        return Response({
+            "message": "Booking rejected.",
+            "data": BookingDetailSerializer(booking).data
+        })
 
