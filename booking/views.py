@@ -50,7 +50,6 @@ class BookingViewSet(ModelViewSet):
         
         return Booking.objects.none()
     
-
     def get_serializer_class(self):
         if self.action == 'create':
             return BookingCreateSerializer
@@ -166,5 +165,25 @@ class BookingViewSet(ModelViewSet):
 
         return Response({
             "message": "Booking completed successfully.",
+            "data": BookingDetailSerializer(booking).data
+        })
+    
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated, CanCancelBooking])
+    def cancel(self, request, pk=None):
+        """Either party cancels the booking"""
+        booking = self.get_object()
+        serializer = BookingStatusUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        reason = serializer.validated_data.get('cancellation_reason', '')
+
+        self._update_status(
+            booking, 'CANCELLED', request.user,
+            note=f'Cancelled: {reason}',
+            cancellation_reason=reason,
+            cancelled_by=request.user
+        )
+        return Response({
+            "message": "Booking cancelled.",
             "data": BookingDetailSerializer(booking).data
         })
