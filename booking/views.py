@@ -128,3 +128,43 @@ class BookingViewSet(ModelViewSet):
             "data": BookingDetailSerializer(booking).data
         })
 
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated, CanStartBooking])
+    def start(self, request, pk=None):
+        """Professional starts work on booking"""
+        booking = self.get_object()
+        self._update_status(
+            booking, 'IN_PROGRESS', request.user,
+            note='Work started',
+            started_at=timezone.now()
+        )
+        return Response({
+            "message": "Booking started.",
+            "data": BookingDetailSerializer(booking).data
+        })
+    
+    @action(detail=True, methods=['POST'], permission_classes=[IsAuthenticated, CanCompleteBooking])
+    def complete(self, request, pk=None):
+        """Professional completes the booking"""
+        booking = self.get_object()
+        serializer = BookingStatusUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        final_price = serializer.validated_data.get(
+            'final_price', booking.estimated_price
+        )
+
+        self._update_status(
+            booking, 'COMPLETED', request.user,
+            note='Work completed',
+            completed_at=timezone.now(),
+            final_price=final_price
+        )
+
+        # update customer's total_bookings count
+        booking.customer.total_bookings += 1
+        booking.customer.save(update_fields=['total_bookings'])
+
+        return Response({
+            "message": "Booking completed successfully.",
+            "data": BookingDetailSerializer(booking).data
+        })
