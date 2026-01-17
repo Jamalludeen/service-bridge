@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 
 from rest_framework.authentication import TokenAuthentication
@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework import status
 
 from .models import Booking, BookingStatusHistory
+from .filters import MyBookingFilter
 from .serializers import (
     BookingCreateSerializer,
     BookingListSerializer,
@@ -57,6 +58,8 @@ class BookingViewSet(ModelViewSet):
         if self.action == 'create':
             return BookingCreateSerializer
         elif self.action == 'list':
+            return BookingListSerializer
+        elif self.action == 'my_bookings':
             return BookingListSerializer
         return BookingDetailSerializer
     
@@ -207,3 +210,37 @@ class BookingViewSet(ModelViewSet):
             {"data": serializer.data},
             status=status.HTTP_200_OK
         )
+    
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated, CanViewBookingHistory])
+    def my_bookings(self, request):
+        user = request.user
+        bookings = Booking.objects.all()
+
+        if user.role == 'professional':
+            bookings = bookings.filter(professional__user=user)
+        
+        elif user.role == 'customer':
+            bookings = bookings.filter(customer__user=user)
+        
+        elif user.role == 'admin':
+            pass
+
+        filterset = MyBookingFilter(
+            data=request.query_params,
+            queryset=bookings
+        )   
+
+        if not filterset.is_valid():
+            return Response(
+                filterset.errors,
+                status=status.HTTP_400_BAD_REQUEST
+        )
+
+        serializer = self.get_serializer(filterset.qs, many=True)
+
+        return Response(
+            {"data": serializer.data},
+            status=status.HTTP_200_OK
+        )
+                
+        
