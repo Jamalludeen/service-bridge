@@ -26,6 +26,29 @@ from .permissions import (
 )
 
 
+class BookingStatusHistoryViewSet(ModelViewSet):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+
+        if user.role == 'customer':
+            return BookingStatusHistory.objects.filter(
+                booking__customer__user=user
+            ).select_related('booking')
+        
+        elif user.role == 'professional':
+            return BookingStatusHistory.objects.filter(
+                booking__professional__user=user
+            ).select_related('booking')
+        
+        elif user.role == 'admin':
+            return BookingStatusHistory.objects.all()
+        
+        return BookingStatusHistory.objects.none()
+
+
 class BookingViewSet(ModelViewSet):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
