@@ -22,7 +22,8 @@ from .permissions import (
     CanAcceptBooking,
     CanStartBooking,
     CanCompleteBooking,
-    CanCancelBooking
+    CanCancelBooking,
+    CanViewBookingHistory
 )
 
 
@@ -215,3 +216,4 @@ class BookingViewSet(ModelViewSet):
             "message": "Booking cancelled.",
             "data": BookingDetailSerializer(booking).data
         })
+    

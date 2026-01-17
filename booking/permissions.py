@@ -64,4 +64,11 @@ class CanCancelBooking(BasePermission):
         return is_participant and can_cancel
 
 
-    
+class CanViewBookingHistory(BasePermission):
+    """Either party can view bookings history"""
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        return (
+            obj.customer.user == user or
+            obj.professional.user == user
+        )
