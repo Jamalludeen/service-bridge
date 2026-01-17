@@ -98,9 +98,10 @@ class BookingViewSet(ModelViewSet):
     def accept(self, request, pk=None):
         """Professional accepts a booking"""
         booking = self.get_object()
+        professioanl_info = booking.professional.user.get_full_name() or booking.professional.user.username
         self._update_status(
             booking, 'ACCEPTED',request.user, 
-            note=f'Booking accepted by {booking.professional.user.username}',
+            note=f'Booking accepted by {professioanl_info}',
             accepted_at=timezone.now()
         )
         return Response({
