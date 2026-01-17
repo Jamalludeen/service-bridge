@@ -148,3 +148,13 @@ class BookingStatusUpdateSerializer(serializers.Serializer):
     final_price = serializers.DecimalField(
         max_digits=10, decimal_places=2, required=False
     )
+
+
+class BookingStatusHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookingStatusHistory
+        fields = [
+            'booking', 'from_status', 'to_status', 'changed_by', 'note', 'created_at'
+        ]
+
+        
