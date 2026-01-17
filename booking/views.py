@@ -13,7 +13,8 @@ from .serializers import (
     BookingCreateSerializer,
     BookingListSerializer,
     BookingDetailSerializer,
-    BookingStatusUpdateSerializer
+    BookingStatusUpdateSerializer,
+    BookingStatusHistorySerializer
 )
 from .permissions import (
     IsBookingCustomer,
@@ -26,28 +27,6 @@ from .permissions import (
     CanViewBookingHistory
 )
 
-
-class BookingStatusHistoryViewSet(ModelViewSet):
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-
-        if user.role == 'customer':
-            return BookingStatusHistory.objects.filter(
-                booking__customer__user=user
-            ).select_related('booking')
-        
-        elif user.role == 'professional':
-            return BookingStatusHistory.objects.filter(
-                booking__professional__user=user
-            ).select_related('booking')
-        
-        elif user.role == 'admin':
-            return BookingStatusHistory.objects.all()
-        
-        return BookingStatusHistory.objects.none()
 
 
 class BookingViewSet(ModelViewSet):
@@ -217,3 +196,14 @@ class BookingViewSet(ModelViewSet):
             "data": BookingDetailSerializer(booking).data
         })
     
+    @action(detail=True, methods=['GET'], permission_classes=[IsAuthenticated, CanViewBookingHistory])
+    def history(self, request, pk=None):
+        booking = self.get_object()
+        histories = BookingStatusHistory.objects.filter(
+            booking=booking
+        )
+        serializer = BookingStatusHistorySerializer(histories,many=True)
+        return Response(
+            {"data": serializer.data},
+            status=status.HTTP_200_OK
+        )

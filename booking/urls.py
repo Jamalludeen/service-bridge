@@ -7,7 +7,6 @@ from .views import BookingViewSet, BookingStatusHistoryViewSet
 
 router = DefaultRouter()
 router.register('', BookingViewSet, basename='booking')
-router.register('history', BookingStatusHistoryViewSet, basename='history')
 
 urlpatterns = [
     path('', include(router.urls)),
