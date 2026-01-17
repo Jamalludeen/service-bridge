@@ -47,7 +47,7 @@ class CustomerUpdateProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomerProfile
-        fields = ["user", "profile_image", "city", "district", "detailed_address"]
+        fields = ["user", "profile_image", "city", "district", "detailed_address", "latitude", "longitude"]
     
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user", None)
