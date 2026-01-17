@@ -117,10 +117,11 @@ class BookingViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         reason = serializer.validated_data.get('rejection_reason', '')
+        user_info = request.user.get_full_name() or request.user.username
 
         self._update_status(
             booking, 'REJECTED', request.user,
-            note=f'Booking rejected: {reason}',
+            note=f'Booking rejected: {reason} by {user_info}',
             rejection_reason=reason
         )
         return Response({
@@ -132,9 +133,11 @@ class BookingViewSet(ModelViewSet):
     def start(self, request, pk=None):
         """Professional starts work on booking"""
         booking = self.get_object()
+        professioanl_info = booking.professional.user.get_full_name() or booking.professional.user.username
+
         self._update_status(
             booking, 'IN_PROGRESS', request.user,
-            note='Work started',
+            note=f'Work started by {professioanl_info}',
             started_at=timezone.now()
         )
         return Response({
@@ -177,10 +180,11 @@ class BookingViewSet(ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         reason = serializer.validated_data.get('cancellation_reason', '')
+        user_info = request.user.get_full_name() or request.user.username
 
         self._update_status(
             booking, 'CANCELLED', request.user,
-            note=f'Cancelled: {reason}',
+            note=f'Cancelled: {reason} by {user_info}',
             cancellation_reason=reason,
             cancelled_by=request.user
         )
