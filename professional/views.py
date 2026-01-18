@@ -33,32 +33,26 @@ class ProfessionalProfileView(APIView):
         return [IsAuthenticated()]
 
     def get(self, request):
-        """
-        - Professional → can see only own profile
-        - Admin → can see all profiles (read-only)
-        """
+        user = request.user
 
-        # PROFESSIONAL USER
-        if request.user.role == "professional":
-            profile = get_object_or_404(Professional, user=request.user)
+        # Public & Admin → list
+        if user.is_anonymous or user.role == "admin":
+            queryset = Professional.objects.all()
+            serializer = ProfessionalRetrieveSerializer(queryset, many=True)
+            return Response({"data": serializer.data})
+
+        # Professional → own profile
+        if user.role == "professional":
+            profile = get_object_or_404(Professional, user=user)
             self.check_object_permissions(request, profile)
-
             serializer = ProfessionalRetrieveSerializer(profile)
-            return Response(
-                {"data": serializer.data},
-                status=status.HTTP_200_OK
-            )
-
-        # ADMIN USER
-        if request.user.role == "admin":
-            professionals = Professional.objects.all()
-            serializer = ProfessionalRetrieveSerializer(professionals, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            return Response({"data": serializer.data})
 
         return Response(
-            {"detail": "You are not allowed to access this endpoint."},
+            {"detail": "Forbidden"},
             status=status.HTTP_403_FORBIDDEN
         )
+
 
     def post(self, request):
         """
