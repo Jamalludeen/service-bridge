@@ -9,5 +9,7 @@ router.register(r'services', ServiceCategoryViewset)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path("profile/", ProfessionalProfileView.as_view(), name="professional_profile"),
+    # path("profile/", ProfessionalProfileView.as_view(), name="professional_profile"),
+    path("profile/", ProfessionalProfileView.as_view()),
+    path("profile/<int:pk>/", ProfessionalProfileView.as_view()),
 ]

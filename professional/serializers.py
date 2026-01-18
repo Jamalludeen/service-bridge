@@ -63,8 +63,8 @@ class ProfessionalRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Professional
         fields = [
-            'user', 'city', 'bio', 'years_of_experience', 'services', 'profile',
-            'document', 'preferred_language'
+            'id', 'user', 'city', 'bio', 'years_of_experience', 'services', 'profile',
+            'document', 'preferred_language', 'avg_rating'
         ]
 
 class ServiceCategorySerializer(serializers.ModelSerializer):
