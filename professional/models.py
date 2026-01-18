@@ -25,6 +25,10 @@ class ServiceCategory(models.Model):
     def __str__(self):
         return self.name
     
+    class Meta:
+        verbose_name_plural = "Service Categories"
+    
+    
 
 class Professional(models.Model):
     VERIFICATION_STATUS = (
