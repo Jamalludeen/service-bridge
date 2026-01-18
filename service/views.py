@@ -17,7 +17,7 @@ from .models import Service
 
 class ServiceViewSet(ModelViewSet):
     queryset = Service.objects.all()
-    permission_classes = [IsProfessionalOwnerOrIsAdmin, IsAuthenticated]
+    # permission_classes = [IsProfessionalOwnerOrIsAdmin, IsAuthenticated]
     authentication_classes = [TokenAuthentication]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = ServiceFilter
@@ -26,18 +26,18 @@ class ServiceViewSet(ModelViewSet):
 
 
     def get_permissions(self):
-        if self.action in ['retrieve', 'list']:
+        if self.action in ['list', 'retrieve']:
             return [AllowAny()]
-        return super().get_permissions()
-        
+        return [IsAuthenticated(), IsProfessionalOwnerOrIsAdmin()]
 
     def get_serializer_class(self):
         user = self.request.user
 
-        if user.role == "admin":
+        if user.is_authenticated and user.role == "admin":
             return AdminServiceSerializer
 
         return ProfessionalServiceSerializer
+
 
     def get_queryset(self):
         user = self.request.user
@@ -47,8 +47,12 @@ class ServiceViewSet(ModelViewSet):
             "professional__user",
             "category"
         )
-        queryset.get
-        if user.role == "admin" or user.is_staff:
+
+        # Public users (AllowAny)
+        if not user.is_authenticated:
+            return queryset.filter(is_active=True)
+
+        if user.is_staff or user.role == "admin":
             return queryset
 
         if user.role == "professional":
@@ -58,6 +62,7 @@ class ServiceViewSet(ModelViewSet):
             return queryset.filter(is_active=True)
 
         return Service.objects.none()
+
     
     @action(detail=True, methods=["POST"], permission_classes=[IsAdminUserOrProfessionalOwner])
     def active(self, request, pk=None):
