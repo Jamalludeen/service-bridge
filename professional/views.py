@@ -8,7 +8,12 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 
-from .serializers import ServiceCategorySerializer, ProfessionalCreateSerializer, ProfessionalUpdateSerializer, ProfessionalRetrieveSerializer
+from .serializers import (
+    ServiceCategorySerializer, 
+    ProfessionalCreateSerializer, 
+    ProfessionalUpdateSerializer, 
+    ProfessionalRetrieveSerializer
+)
 from .models import ServiceCategory, Professional
 from .permissions import IsProfessionalOwner
 # from .throttles import ProfessionalProfileThrottle
@@ -16,147 +21,109 @@ from .permissions import IsProfessionalOwner
 User = get_user_model()
 
 
+class ProfessionalProfileViewSet(ModelViewSet):
+    """
+    Professional Profile Management
+    """
 
-class ProfessionalProfileView(APIView):
+    queryset = Professional.objects.select_related("user").prefetch_related("services")
     authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-    # throttle_classes = [ProfessionalProfileThrottle]
 
+    # -------------------------------
+    # Permissions
+    # -------------------------------
     def get_permissions(self):
-        """
-        Enforce permissions BEFORE request handling
-        """
-        if self.request.method in ["PATCH", "DELETE"]:
+        if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsProfessionalOwner()]
-        if self.request.method in SAFE_METHODS:
+        if self.action in ["list", "retrieve"]:
             return [AllowAny()]
         return [IsAuthenticated()]
 
-    def get(self, request, pk=None):
-        user = request.user
+    # -------------------------------
+    # Serializer selection
+    # -------------------------------
+    def get_serializer_class(self):
+        if self.action == "create":
+            return ProfessionalCreateSerializer
+        if self.action in ["update", "partial_update"]:
+            return ProfessionalUpdateSerializer
+        return ProfessionalRetrieveSerializer
 
-        # RETRIEVE BY ID
-        if pk is not None and user.is_authenticated:
-            profile = get_object_or_404(Professional, pk=pk)
+    # -------------------------------
+    # Queryset control
+    # -------------------------------
+    def get_queryset(self):
+        user = self.request.user
 
-            # Owner can see own profile
-            if user.is_authenticated and user.role == "professional":
-                if profile.user != user:
-                    return Response(
-                        {"detail": "You are not allowed to access this profile."},
-                        status=status.HTTP_403_FORBIDDEN
-                    )
+        # Admin → all profiles
+        if user.is_authenticated and user.role == "admin":
+            return self.queryset
 
-            serializer = ProfessionalRetrieveSerializer(profile)
-            return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+        # Professional → own profile only
+        if user.is_authenticated and user.role == "professional":
+            return self.queryset.filter(user=user)
 
-        # LIST VIEW
-        if user.is_anonymous or user.role == "admin":
-            queryset = Professional.objects.all()
-            serializer = ProfessionalRetrieveSerializer(queryset, many=True)
-            return Response({"data": serializer.data}, status=status.HTTP_200_OK)
+        # Public → list only active professionals
+        return self.queryset.filter(is_active=True)
 
-        # PROFESSIONAL → own profile
-        if user.role == "professional":
-            profile = get_object_or_404(Professional, user=user)
-            self.check_object_permissions(request, profile)
-            serializer = ProfessionalRetrieveSerializer(profile)
-            return Response({"data": serializer.data}, status=status.HTTP_200_OK)
-
-        return Response(
-            {"detail": "Forbidden"},
-            status=status.HTTP_403_FORBIDDEN
-        )
-
-
-    def post(self, request):
-        """
-        Create professional profile (once per user)
-        """
-
+    # -------------------------------
+    # CREATE
+    # -------------------------------
+    def create(self, request, *args, **kwargs):
         user = request.user
 
         if user.role == "customer":
-            return Response (
-                {"message": "You are not allowed to access this endpoint"},
+            return Response(
+                {"detail": "You are not allowed to create a professional profile."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Must be verified
         if not user.is_verified:
             return Response(
                 {"detail": "Please verify your account first."},
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        # Prevent duplicate profile
         if Professional.objects.filter(user=user).exists():
             return Response(
                 {"detail": "Professional profile already exists."},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        serializer = ProfessionalCreateSerializer(
-            data=request.data,
-            context={"request": request}
-        )
-
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         profile = serializer.save(user=user)
 
         return Response(
             {
                 "message": "Profile successfully created.",
-                "profile": ProfessionalCreateSerializer(profile).data,
+                "data": ProfessionalRetrieveSerializer(profile).data
             },
             status=status.HTTP_201_CREATED
         )
 
-    def patch(self, request):
-        """
-        Update professional profile (owner only)
-        """
+    # -------------------------------
+    # UPDATE / PARTIAL UPDATE
+    # -------------------------------
+    def perform_update(self, serializer):
+        user = self.request.user
 
-        profile = get_object_or_404(Professional, user=request.user)
-        self.check_object_permissions(request, profile)
+        if not user.is_verified:
+            raise PermissionError("Account must be verified to update profile.")
 
-        # Enforce verification
-        if not request.user.is_verified:
-            return Response(
-                {"detail": "Account must be verified to update profile."},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        serializer = ProfessionalUpdateSerializer(
-            instance=profile,
-            data=request.data,
-            partial=True
-        )
-
-        serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        return Response(
-            {
-                "message": "Profile successfully updated.",
-                "data": serializer.data
-            },
-            status=status.HTTP_200_OK
-        )
-
-    def delete(self, request):
-        """
-        Delete professional profile (owner only)
-        """
-
-        profile = get_object_or_404(Professional, user=request.user)
-        self.check_object_permissions(request, profile)
-
-        profile.delete()
+    # -------------------------------
+    # DESTROY
+    # -------------------------------
+    def destroy(self, request, *args, **kwargs):
+        profile = self.get_object()
+        self.perform_destroy(profile)
         return Response(
             {"message": "Profile deleted successfully."},
             status=status.HTTP_204_NO_CONTENT
         )
+
      
 
 class ServiceCategoryViewset(ModelViewSet):
