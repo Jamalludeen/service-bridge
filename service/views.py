@@ -1,6 +1,6 @@
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -23,6 +23,13 @@ class ServiceViewSet(ModelViewSet):
     filterset_class = ServiceFilter
     search_fields = ['title', 'category__name']
     ordering_fields = ["title", "category__name", "price_per_unit"]
+
+
+    def get_permissions(self):
+        if self.action in ['retrieve', 'list']:
+            return [AllowAny()]
+        return super().get_permissions()
+        
 
     def get_serializer_class(self):
         user = self.request.user
