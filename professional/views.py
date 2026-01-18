@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS, AllowAny
 from rest_framework.authentication import TokenAuthentication
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -103,7 +104,7 @@ class ProfessionalProfileViewSet(ModelViewSet):
         user = self.request.user
 
         if not user.is_verified:
-            raise PermissionError("Account must be verified to update profile.")
+            raise PermissionDenied("Account must be verified to update profile.")
 
         serializer.save()
 

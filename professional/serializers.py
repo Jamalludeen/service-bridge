@@ -40,7 +40,7 @@ class ProfessionalUpdateSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user", None)
 
-        # ✅ Only update user IF user data is explicitly sent
+        # Only update user IF user data is explicitly sent
         if user_data is not None:
             user = instance.user
 
