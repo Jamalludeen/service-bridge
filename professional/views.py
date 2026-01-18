@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS, AllowAny
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 
@@ -113,6 +114,22 @@ class ProfessionalProfileViewSet(ModelViewSet):
             {"message": "Profile deleted successfully."},
             status=status.HTTP_204_NO_CONTENT
         )
+    
+    @action(detail=False, methods=['GET'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        """Retrieve the profile of the currently authenticated professional."""
+        user = request.user
+
+        try:
+            profile = Professional.objects.get(user=user)
+        except Professional.DoesNotExist:
+            return Response(
+                {"detail": "Professional profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = ProfessionalRetrieveSerializer(profile)
+        return Response(serializer.data)
     
 
 class ServiceCategoryViewset(ModelViewSet):
