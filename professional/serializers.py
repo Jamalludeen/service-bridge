@@ -23,39 +23,52 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
 
 class ProfessionalUpdateSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
+
     class Meta:
         model = Professional
         fields = [
-            'user', 'city', 'bio', 'years_of_experience', 'services', 'profile',
-            'document', 'preferred_language'
+            'user',
+            'city',
+            'bio',
+            'years_of_experience',
+            'services',
+            'profile',
+            'document',
+            'preferred_language',
         ]
-    
+
     def update(self, instance, validated_data):
         user_data = validated_data.pop("user", None)
 
-        if user_data:
-            email: str = user_data.get("email", "")
-            phone: str = user_data.get("phone", "")
+        # ✅ Only update user IF user data is explicitly sent
+        if user_data is not None:
+            user = instance.user
 
-            if email and not email.endswith("@gmail.com"):
-                raise serializers.ValidationError({
-                    "email": "Please enter a valid Gmail address"
-                })
+            email = user_data.get("email")
+            phone = user_data.get("phone")
 
-            # Afghanistan phone validation
-            if phone:
+            if email and email != user.email:
+                if not email.endswith("@gmail.com"):
+                    raise serializers.ValidationError({
+                        "user": {"email": "Please enter a valid Gmail address"}
+                    })
+                user.email = email
+
+            if phone and phone != user.phone:
                 afghan_phone_regex = r'^\+93\d{9}$'
                 if not re.match(afghan_phone_regex, phone):
                     raise serializers.ValidationError({
-                        "phone": "Phone number must be a valid Afghanistan number starting with +93"
+                        "user": {"phone": "Phone number must start with +93"}
                     })
+                user.phone = phone
 
-            user = instance.user
-            for attr, value in user_data.items():
-                setattr(user, attr, value)
+            user.first_name = user_data.get("first_name", user.first_name)
+            user.last_name = user_data.get("last_name", user.last_name)
             user.save()
 
+        # ✅ Update Professional fields normally
         return super().update(instance, validated_data)
+
 
 
 class ProfessionalRetrieveSerializer(serializers.ModelSerializer):
@@ -65,6 +78,15 @@ class ProfessionalRetrieveSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'city', 'bio', 'years_of_experience', 'services', 'profile',
             'document', 'preferred_language', 'avg_rating'
+        ]
+
+
+class ProfessionalListSerializer(serializers.ModelSerializer):
+    """Public-facing serializer with reduced fields for list endpoint."""
+    class Meta:
+        model = Professional
+        fields = [
+            'id', 'city', 'years_of_experience', 'services', 'profile', 'avg_rating'
         ]
 
 class ServiceCategorySerializer(serializers.ModelSerializer):

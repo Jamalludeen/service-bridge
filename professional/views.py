@@ -1,11 +1,9 @@
-from django.shortcuts import get_object_or_404
 from django.contrib.auth import get_user_model
 
 from rest_framework.permissions import IsAuthenticated, SAFE_METHODS, AllowAny
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework import status
 
 from .serializers import (
@@ -28,30 +26,30 @@ class ProfessionalProfileViewSet(ModelViewSet):
 
     queryset = Professional.objects.select_related("user").prefetch_related("services")
     authentication_classes = [TokenAuthentication]
+    # http_method_names = ["get", "post", "patch", "delete", "head", "options"]
 
-    # -------------------------------
-    # Permissions
-    # -------------------------------
+
     def get_permissions(self):
         if self.action in ["update", "partial_update", "destroy"]:
             return [IsAuthenticated(), IsProfessionalOwner()]
-        if self.action in ["list", "retrieve"]:
+        
+        if self.action in ["list"]:
             return [AllowAny()]
+        
         return [IsAuthenticated()]
 
-    # -------------------------------
-    # Serializer selection
-    # -------------------------------
     def get_serializer_class(self):
         if self.action == "create":
             return ProfessionalCreateSerializer
+        if self.action == "list":
+            # Public list view: use reduced serializer
+            from .serializers import ProfessionalListSerializer
+            return ProfessionalListSerializer
         if self.action in ["update", "partial_update"]:
             return ProfessionalUpdateSerializer
         return ProfessionalRetrieveSerializer
 
-    # -------------------------------
-    # Queryset control
-    # -------------------------------
+
     def get_queryset(self):
         user = self.request.user
 
@@ -66,9 +64,6 @@ class ProfessionalProfileViewSet(ModelViewSet):
         # Public → list only active professionals
         return self.queryset.filter(is_active=True)
 
-    # -------------------------------
-    # CREATE
-    # -------------------------------
     def create(self, request, *args, **kwargs):
         user = request.user
 
@@ -102,9 +97,7 @@ class ProfessionalProfileViewSet(ModelViewSet):
             status=status.HTTP_201_CREATED
         )
 
-    # -------------------------------
-    # UPDATE / PARTIAL UPDATE
-    # -------------------------------
+
     def perform_update(self, serializer):
         user = self.request.user
 
@@ -113,9 +106,6 @@ class ProfessionalProfileViewSet(ModelViewSet):
 
         serializer.save()
 
-    # -------------------------------
-    # DESTROY
-    # -------------------------------
     def destroy(self, request, *args, **kwargs):
         profile = self.get_object()
         self.perform_destroy(profile)
@@ -123,8 +113,7 @@ class ProfessionalProfileViewSet(ModelViewSet):
             {"message": "Profile deleted successfully."},
             status=status.HTTP_204_NO_CONTENT
         )
-
-     
+    
 
 class ServiceCategoryViewset(ModelViewSet):
     serializer_class = ServiceCategorySerializer
