@@ -126,3 +126,23 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"Payment {self.transaction_id} - {self.amount} {self.currency} ({self.status})"
+
+
+
+class PaymentHistory(models.Model):
+    """Track all payment status changes for audit trail"""
+
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.CASCADE,
+        related_name='history'
+    )
+    from_status = models.CharField(max_length=20, blank=True)
+    to_status = models.CharField(max_length=20)
+    changed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True
+    )
+    note = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
