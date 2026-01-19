@@ -153,3 +153,65 @@ class PaymentHistory(models.Model):
 
     def __str__(self):
         return f"{self.payment.transaction_id}: {self.from_status} -> {self.to_status}"
+    
+
+
+
+class RefundRequest(models.Model):
+    """Handle refund requests with approval workflow"""
+
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending Review'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+        ('PROCESSED', 'Processed'),
+    ]
+
+    REASON_CHOICES = [
+        ('SERVICE_NOT_COMPLETED', 'Service Not Completed'),
+        ('POOR_QUALITY', 'Poor Service Quality'),
+        ('PROFESSIONAL_NO_SHOW', 'Professional Did Not Show Up'),
+        ('CANCELLED_BY_PROFESSIONAL', 'Cancelled by Professional'),
+        ('OVERCHARGED', 'Overcharged'),
+        ('OTHER', 'Other'),
+    ]
+
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.CASCADE,
+        related_name='refund_requests'
+    )
+    requested_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='refund_requests'
+    )
+    reason = models.CharField(max_length=30, choices=REASON_CHOICES)
+    description = models.TextField()
+
+    refund_amount = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Amount to refund (can be partial)"
+    )
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='PENDING'
+    )
+
+    # Admin response
+    reviewed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_refunds'
+    )
+    admin_notes = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    
