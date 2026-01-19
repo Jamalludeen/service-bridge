@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import MinValueValidator
 from decimal import Decimal
+import uuid
 
 from core.models import User
 from booking.models import Booking
@@ -109,3 +110,16 @@ class Payment(models.Model):
             models.Index(fields=['transaction_id']),
             models.Index(fields=['booking']),
         ]
+    
+    def save(self, *args, **kwargs):
+        if not self.transaction_id:
+            self.transaction_id = f"TXN-{uuid.uuid4().hex[:12].upper()}"
+
+        # Calculate platform fee and professional payout
+        if self.amount and not self.professional_payout:
+            self.platform_fee_amount = (
+                self.amount * self.platform_fee_percentage / 100
+            )
+            self.professional_payout = self.amount - self.platform_fee_amount
+
+        super().save(*args, **kwargs)
