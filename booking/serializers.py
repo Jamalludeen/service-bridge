@@ -112,7 +112,7 @@ class BookingDetailSerializer(serializers.ModelSerializer):
     service = ProfessionalServiceSerializer(read_only=True)
     professional = ProfessionalRetrieveSerializer(read_only=True)
     customer = CustomerRetrieveProfileSerializer(read_only=True)
-    status_history = serializers.SerializerMethodField()
+    # status_history = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
@@ -124,20 +124,20 @@ class BookingDetailSerializer(serializers.ModelSerializer):
             'estimated_price', 'final_price',
             'status', 'rejection_reason', 'cancellation_reason',
             'created_at', 'accepted_at', 'started_at', 'completed_at',
-            'status_history'
+            # 'status_history'
         ]
 
-    def get_status_history(self, obj):
-        history = obj.status_history.all()[:10]
-        return [
-            {
-                'from_status': h.from_status,
-                'to_status': h.to_status,
-                'note': h.note,
-                'created_at': h.created_at
-            }
-            for h in history
-        ]
+    # def get_status_history(self, obj):
+    #     history = obj.status_history.all()[:10]
+    #     return [
+    #         {
+    #             'from_status': h.from_status,
+    #             'to_status': h.to_status,
+    #             'note': h.note,
+    #             'created_at': h.created_at
+    #         }
+    #         for h in history
+    #     ]
 
 
 
