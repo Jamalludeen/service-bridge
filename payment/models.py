@@ -96,3 +96,16 @@ class Payment(models.Model):
         blank=True,
         help_text="Amount to be paid to professional after fees"
     )
+
+    # Metadata
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['status']),
+            models.Index(fields=['transaction_id']),
+            models.Index(fields=['booking']),
+        ]
