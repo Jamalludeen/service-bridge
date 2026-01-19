@@ -123,3 +123,6 @@ class Payment(models.Model):
             self.professional_payout = self.amount - self.platform_fee_amount
 
         super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"Payment {self.transaction_id} - {self.amount} {self.currency} ({self.status})"
