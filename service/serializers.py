@@ -26,7 +26,7 @@ class AdminServiceSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Service
-        fields = ["id", "professional", "category", "category_name", "title", "description", "pricing_type", "price_per_unit", "is_active"]
+        fields = ["id", "professional", "category", "category_name", "title", "image", "description", "pricing_type", "price_per_unit", "is_active"]
 
 
 class ProfessionalServiceSerializer(serializers.ModelSerializer):
@@ -40,6 +40,7 @@ class ProfessionalServiceSerializer(serializers.ModelSerializer):
             "id",
             "professional",
             "category",
+            "image",
             "category_name",
             "title",
             "description",
