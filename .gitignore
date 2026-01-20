@@ -10,3 +10,4 @@ customer/__pycache__
 professional/__pycache__
 service/__pycache__
 serviceBridge/__pycache__
+serviceBridge/settings.py
