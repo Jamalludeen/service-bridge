@@ -1,6 +1,6 @@
 general.log
 db.sqlite3
-./media
+media/
 ./AUTH_API_DOCUMENTATION.md
 ./AUTH_API_DOCUMENTATION.txt
 documentation/
