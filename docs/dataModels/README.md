@@ -1,0 +1,104 @@
+**Service & Booking Data Models**
+
+- Visual diagram: [service_booking.svg](service_booking.svg)
+- Source PlantUML: [service_booking.puml](service_booking.puml)
+
+Notes:
+
+- Use `id` fields as primary keys for references.
+- `quantity` applies when `Service.pricing_type == PER_UNIT`.
+- `estimated_price` is server-calculated; client should treat `final_price` as authoritative when present.
+
+<!-- Embedded graphical UML for easy sharing with frontend/mobile teams -->
+
+<details>
+<summary>Diagram (expand to view)</summary>
+
+![Service & Booking diagram](service_booking.svg)
+
+</details>
+
+---
+
+### PlantUML source
+
+```plantuml
+@startuml
+title Service & Booking Model Diagram
+
+' Entity classes from Django models
+class Service {
+	+id: Integer
+	+professional_id: FK Professional
+	+category_id: FK ServiceCategory
+	+title: CharField
+	+description: TextField
+	+pricing_type: Enum(HOURLY,DAILY,FIXED,PER_UNIT)
+	+price_per_unit: Decimal
+	+is_active: Boolean
+	+created_at: DateTime
+}
+
+class Booking {
+	+id: Integer
+	+customer_id: FK CustomerProfile
+	+professional_id: FK Professional
+	+service_id: FK Service
+	+scheduled_date: Date
+	+scheduled_time: Time
+	+address: TextField
+	+city: CharField
+	+latitude: Decimal
+	+longitude: Decimal
+	+special_instructions: TextField
+	+quantity: Integer
+	+estimated_price: Decimal
+	+final_price: Decimal
+	+status: Enum(PENDING,ACCEPTED,REJECTED,IN_PROGRESS,COMPLETED,CANCELLED)
+	+rejection_reason: TextField
+	+cancellation_reason: TextField
+	+cancelled_by_id: FK User (nullable)
+	+created_at: DateTime
+	+updated_at: DateTime
+	+accepted_at: DateTime (nullable)
+	+started_at: DateTime (nullable)
+	+completed_at: DateTime (nullable)
+}
+
+class BookingStatusHistory {
+	+id: Integer
+	+booking_id: FK Booking
+	+from_status: CharField
+	+to_status: CharField
+	+changed_by_id: FK User (nullable)
+	+note: TextField
+	+created_at: DateTime
+}
+
+' Small stubs for referenced models
+class Professional
+class ServiceCategory
+class CustomerProfile
+class User
+
+' Relationships
+Professional "1" -- "0..*" Service : offers >
+Service "1" -- "0..*" Booking : has >
+CustomerProfile "1" -- "0..*" Booking : places >
+Professional "1" -- "0..*" Booking : receives >
+Booking "1" -- "0..*" BookingStatusHistory : history >
+Booking o-- User : cancelled_by
+
+note bottom
+Use primary keys `id` for references.
+Clients should display nested `service` summary (id,title,price_per_unit,pricing_type).
+@enduml
+```
+
+---
+
+Notes:
+
+- Use `id` fields as primary keys for references.
+- `quantity` applies when `Service.pricing_type == PER_UNIT`.
+- `estimated_price` is server-calculated; client should treat `final_price` as authoritative when present.
