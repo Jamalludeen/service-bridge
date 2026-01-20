@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.validators import FileExtensionValidator
 
 from professional.models import Professional, ServiceCategory
 
@@ -19,6 +20,10 @@ class Service(models.Model):
     )
     title = models.CharField(max_length=255)
     description = models.TextField()
+    image = models.ImageField(
+        null=True, blank=True, 
+        validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]
+    )
     
     pricing_type = models.CharField(max_length=20, choices=PRICING_TYPE)
 
