@@ -138,3 +138,8 @@ class ServiceCategoryViewset(ModelViewSet):
     queryset = ServiceCategory.objects.all()
     permission_classes = [IsAuthenticated]
     authentication_classes = [TokenAuthentication]
+
+    def get_permissions(self):
+        if self.action in ['list', 'retrieve']:
+            return [AllowAny()]
+        return super().get_permissions()
