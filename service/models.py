@@ -3,6 +3,13 @@ from django.core.validators import FileExtensionValidator
 
 from professional.models import Professional, ServiceCategory
 
+from os.path import join
+
+def service_image_upload_path(instance, filename):
+    username: str = instance.professional.user.username.replace(" ", "_")
+    username = username.replace(".", "_")
+    return join("service_images", username, filename)
+
 
 class Service(models.Model):
     PRICING_TYPE = (
@@ -22,6 +29,7 @@ class Service(models.Model):
     description = models.TextField()
     image = models.ImageField(
         null=True, blank=True, 
+        upload_to=service_image_upload_path,
         validators=[FileExtensionValidator(allowed_extensions=['jpg', 'jpeg', 'png'])]
     )
     
