@@ -22,3 +22,6 @@ def test_booking_string_representation(booking):
     """
     expected = f"Booking #{booking.id} - {booking.service.title} (PENDING)"
     assert str(booking) == expected
+
+# TODO: implement test booking status changes
+# TODO: write comments for tests
