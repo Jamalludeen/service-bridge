@@ -5,6 +5,8 @@ from customer.models import CustomerProfile
 from professional.models import Professional
 from booking.models import Booking
 from payment.models import Payment
+from decimal import Decimal
+from datetime import date, time
 
 
 @pytest.fixture
@@ -88,3 +90,34 @@ def professional(professional_user, db):
     )
     pro.services.add(category)
     return pro
+
+@pytest.fixture
+def service(professional, db):
+    from service.models import Service
+    from professional.models import ServiceCategory
+
+    category = ServiceCategory.objects.first()
+
+    return Service.objects.create(
+        professional=professional,
+        category=category,
+        title='Fix Broken pipe',
+        pricing_type='FIXED',
+        price_per_unit=Decimal('500.00'),
+        is_active=True
+    )
+
+@pytest.fixture
+def booking(customer_profile, professional, service, db):
+    return Booking.objects.create(
+        customer=customer_profile,
+        professional=professional,
+        service=service,
+        scheduled_date=date(2026, 2, 1),
+        scheduled_time=time(10, 0),
+        address='123 Test Street',
+        city='Kabul',
+        quantity=1,
+        estimated_price=Decimal('500.00'),
+        status='PENDING'
+    )
