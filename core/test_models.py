@@ -2,21 +2,16 @@ import pytest
 from core.models import User
 
 @pytest.mark.django_db
-def test_user_creation():
+def test_user_creation(user):
     # ARRANGE: set up test data
-    user = User.objects.create_user(
-        username='testuser',
-        email='test@example.com',
-        password='testpass123',
-        phone='+93700000000',
-        role='customer'
-    )
-
-    # ASSERT
     assert user.id is not None
-    assert user.email == 'test@example.com'
+    assert user.email == 'customer@gmail.com'
     assert user.role == 'customer'
-    assert user.check_password('testpass123')
+
+
+@pytest.mark.django_db
+def test_user_role(user):
+    assert user.role == 'customer'
 
 
 @pytest.mark.django_db

@@ -2,7 +2,7 @@ general.log
 db.sqlite3
 media/
 ./AUTH_API_DOCUMENTATION.md
-./AUTH_API_DOCUMENTATION.txt
+AUTH_API_DOCUMENTATION.txt
 documentation/
 .claude
 core/__pycache__
@@ -10,3 +10,5 @@ customer/__pycache__
 professional/__pycache__
 service/__pycache__
 serviceBridge/__pycache__
+__pycache__/
+.pytest_cache/
