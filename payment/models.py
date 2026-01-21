@@ -8,7 +8,7 @@ from booking.models import Booking
 
 
 class Payment(models.Model):
-    """payment model linked to a booking"""
+    """Payment model linked to a booking"""
 
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),           # Payment initiated, waiting for funds
@@ -22,11 +22,7 @@ class Payment(models.Model):
     PAYMENT_METHOD_CHOICES = [
         ('CASH', 'Cash on Delivery'),
         ('MOBILE_MONEY', 'Mobile Money'),      # M-Paisa, etc.
-    ]
-
-    CURRENCY_CHOICES = [
-        ('AFN', 'Afghan Afghani'),
-        ('USD', 'US Dollar'),
+        ('BANK_TRANSFER', 'Bank Transfer'),    # Added for flexibility
     ]
 
     # Relationships
@@ -42,11 +38,10 @@ class Payment(models.Model):
         decimal_places=2,
         validators=[MinValueValidator(Decimal('0.01'))]
     )
-    currency = models.CharField(
-        max_length=3,
-        choices=CURRENCY_CHOICES,
-        default='AFN'
-    )
+
+    # SIMPLIFIED: Removed currency field - always AFN for now
+    # Can add back later when expanding internationally
+
     payment_method = models.CharField(
         max_length=20,
         choices=PAYMENT_METHOD_CHOICES,
@@ -62,8 +57,7 @@ class Payment(models.Model):
     external_transaction_id = models.CharField(
         max_length=255,
         blank=True,
-        null=True,
-        help_text="Transaction ID from payment gateway"
+        help_text="Transaction ID from payment gateway (M-Paisa, etc.)"
     )
 
     # Status
@@ -71,31 +65,6 @@ class Payment(models.Model):
         max_length=20,
         choices=STATUS_CHOICES,
         default='PENDING'
-    )
-
-    # Escrow Info
-    escrow_held_at = models.DateTimeField(null=True, blank=True)
-    released_at = models.DateTimeField(null=True, blank=True)
-    refunded_at = models.DateTimeField(null=True, blank=True)
-
-    # Platform Fee (optional - for future monetization)
-    platform_fee_percentage = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        default=Decimal('5.00'),
-        help_text="Platform commission percentage"
-    )
-    platform_fee_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=Decimal('0.00')
-    )
-    professional_payout = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="Amount to be paid to professional after fees"
     )
 
     # Metadata
@@ -110,23 +79,15 @@ class Payment(models.Model):
             models.Index(fields=['transaction_id']),
             models.Index(fields=['booking']),
         ]
-    
+
     def save(self, *args, **kwargs):
         if not self.transaction_id:
             self.transaction_id = f"TXN-{uuid.uuid4().hex[:12].upper()}"
 
-        # Calculate platform fee and professional payout
-        if self.amount and not self.professional_payout:
-            self.platform_fee_amount = (
-                self.amount * self.platform_fee_percentage / 100
-            )
-            self.professional_payout = self.amount - self.platform_fee_amount
-
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f"Payment {self.transaction_id} - {self.amount} {self.currency} ({self.status})"
-
+        return f"Payment {self.transaction_id} - {self.amount} AFN ({self.status})"
 
 
 class PaymentHistory(models.Model):
@@ -153,70 +114,4 @@ class PaymentHistory(models.Model):
 
     def __str__(self):
         return f"{self.payment.transaction_id}: {self.from_status} -> {self.to_status}"
-    
 
-
-
-class RefundRequest(models.Model):
-    """Handle refund requests with approval workflow"""
-
-    STATUS_CHOICES = [
-        ('PENDING', 'Pending Review'),
-        ('APPROVED', 'Approved'),
-        ('REJECTED', 'Rejected'),
-        ('PROCESSED', 'Processed'),
-    ]
-
-    REASON_CHOICES = [
-        ('SERVICE_NOT_COMPLETED', 'Service Not Completed'),
-        ('POOR_QUALITY', 'Poor Service Quality'),
-        ('PROFESSIONAL_NO_SHOW', 'Professional Did Not Show Up'),
-        ('CANCELLED_BY_PROFESSIONAL', 'Cancelled by Professional'),
-        ('OVERCHARGED', 'Overcharged'),
-        ('OTHER', 'Other'),
-    ]
-
-    payment = models.ForeignKey(
-        Payment,
-        on_delete=models.CASCADE,
-        related_name='refund_requests'
-    )
-    requested_by = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='refund_requests'
-    )
-    reason = models.CharField(max_length=30, choices=REASON_CHOICES)
-    description = models.TextField()
-
-    refund_amount = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        help_text="Amount to refund (can be partial)"
-    )
-
-    status = models.CharField(
-        max_length=20,
-        choices=STATUS_CHOICES,
-        default='PENDING'
-    )
-
-    # Admin response
-    reviewed_by = models.ForeignKey(
-        User,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='reviewed_refunds'
-    )
-    admin_notes = models.TextField(blank=True)
-
-    created_at = models.DateTimeField(auto_now_add=True)
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    processed_at = models.DateTimeField(null=True, blank=True)
-
-    class Meta:
-        ordering = ['-created_at']
-
-    def __str__(self):
-        return f"Refund for {self.payment.transaction_id} - {self.status}"
