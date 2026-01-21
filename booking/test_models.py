@@ -1,6 +1,7 @@
 import pytest
 from decimal import Decimal
 from datetime import date, time
+
 from booking.models import Booking
 
 @pytest.mark.django_db
@@ -23,5 +24,5 @@ def test_booking_string_representation(booking):
     expected = f"Booking #{booking.id} - {booking.service.title} (PENDING)"
     assert str(booking) == expected
 
-# TODO: implement test booking status changes
+# TODO: implement test booking status changes 622
 # TODO: write comments for tests

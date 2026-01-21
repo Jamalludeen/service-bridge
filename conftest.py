@@ -1,12 +1,15 @@
-import pytest
 from rest_framework.test import APIClient
+
+import pytest
+from decimal import Decimal
+from datetime import date, time
+
 from core.models import User
 from customer.models import CustomerProfile
 from professional.models import Professional
 from booking.models import Booking
 from payment.models import Payment
-from decimal import Decimal
-from datetime import date, time
+
 
 
 @pytest.fixture
