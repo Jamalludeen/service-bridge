@@ -40,3 +40,16 @@ def test_user_email_must_be_unique():
             role='customer'
         )
 
+
+@pytest.mark.django_db
+def test_user_string_representation():
+    user = User.objects.create_user(
+        username='johndoe',
+        email='john@example.com',
+        password='pass123',
+        phone='+93700000003',
+        role='customer'
+    )
+
+    assert str(user) == 'johndoe'
+
