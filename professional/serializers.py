@@ -21,6 +21,12 @@ class RetrieveUserSerializer(serializers.ModelSerializer):
         fields = ["first_name", "last_name", "phone", "email", "role"]
 
 
+class RetrieveUserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["first_name", "last_name"]
+
+
 class ProfessionalUpdateSerializer(serializers.ModelSerializer):
     user = UserSerializer(required=False)
 
@@ -83,10 +89,11 @@ class ProfessionalRetrieveSerializer(serializers.ModelSerializer):
 
 class ProfessionalListSerializer(serializers.ModelSerializer):
     """Public-facing serializer with reduced fields for list endpoint."""
+    user = RetrieveUserListSerializer(read_only=True)
     class Meta:
         model = Professional
         fields = [
-            'id', 'city', 'years_of_experience', 'services', 'profile', 'avg_rating'
+            'id', 'user', 'city', 'years_of_experience', 'services', 'profile', 'avg_rating'
         ]
 
 class ServiceCategorySerializer(serializers.ModelSerializer):
