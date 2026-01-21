@@ -62,3 +62,29 @@ def professional_client(api_client, professional_user):
 def admin_client(api_client, admin_user):
     api_client.force_authenticate(user=admin_user)
     return api_client
+
+@pytest.fixture
+def customer_profile(user, db):
+    from customer.models import CustomerProfile
+    return CustomerProfile.objects.create(
+        user=user,
+        city='kabul',
+        district='13th'
+    )
+
+@pytest.fixture
+def professional(professional_user, db):
+    from professional.models import Professional, ServiceCategory
+
+    category = ServiceCategory.objects.create(name='Plumbing')
+
+    pro = Professional.objects.create(
+        user=professional_user,
+        years_of_experience=5,
+        city='Kabul',
+        bio='Professional plumber',
+        verification_status='VERIFIED',
+        is_active=True
+    )
+    pro.services.add(category)
+    return pro
