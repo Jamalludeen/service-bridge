@@ -47,3 +47,18 @@ def admin_user(db):
         is_superuser=True,
         is_verified=True
     )
+
+@pytest.fixture
+def authenticated_client(api_client, user):
+    api_client.force_authenticate(user=user)
+    return APIClient
+
+@pytest.fixture
+def professional_client(api_client, professional_user):
+    api_client.force_authenticate(user=professional_user)
+    return api_client
+
+@pytest.fixture
+def admin_client(api_client, admin_user):
+    api_client.force_authenticate(user=admin_user)
+    return api_client
