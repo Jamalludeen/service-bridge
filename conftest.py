@@ -3,12 +3,14 @@ from rest_framework.test import APIClient
 import pytest
 from decimal import Decimal
 from datetime import date, time
+import uuid
 
 from core.models import User
 from customer.models import CustomerProfile
 from professional.models import Professional
 from booking.models import Booking
 from payment.models import Payment
+
 
 
 
@@ -123,4 +125,12 @@ def booking(customer_profile, professional, service, db):
         quantity=1,
         estimated_price=Decimal('500.00'),
         status='PENDING'
+    )
+
+@pytest.fixture
+def payment(booking):
+    return Payment.objects.create(
+        booking=booking,
+        amount=Decimal('499.99'),
+        transaction_id=f'{uuid.uuid4().hex[:12].upper()}',
     )
