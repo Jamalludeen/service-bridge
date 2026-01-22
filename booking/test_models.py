@@ -79,3 +79,58 @@ def test_booking_quantity_validation(customer_profile, professional, service):
     with pytest.raises(ValidationError):
         booking.full_clean()
 
+
+@pytest.mark.django_db
+def test_booking_relationships(booking):
+    """
+    Test that booking relationships work in both directions.
+    """
+    
+    assert booking.customer.user.email == 'customer@gmail.com'
+    customer_bookings = booking.customer.bookings.all()
+    assert booking in customer_bookings
+
+    pro_bookings = booking.professional.booking_requests.all()
+    assert booking in pro_bookings
+
+
+@pytest.mark.django_db
+def test_booking_ordering(customer_profile, professional, service, booking):
+    """
+    Test that bookings are ordered by created_at (newest first)
+    """
+    from time import sleep
+
+    booking1 = Booking.objects.create(
+        customer=customer_profile,
+        professional=professional,
+        service=service,
+        scheduled_date=date(2026, 2,2),
+        scheduled_time=time(10, 0),
+        address="city #1 home #1",
+        city="city 1",
+        estimated_price=Decimal('500.00'),
+    )
+
+    sleep(0.5)
+
+    booking2 = Booking.objects.create(
+        customer=customer_profile,
+        professional=professional,
+        service=service,
+        scheduled_date=date(2026, 2,2),
+        scheduled_time=time(11, 0),
+        address="city #2 home #2",
+        city="city 2",
+        estimated_price=Decimal('500.00'),
+    )
+
+    booking.refresh_from_db()
+    bookings = list(Booking.objects.all())
+    # print("bookings----------: ", bookings)
+
+    assert bookings[0].id == booking2.id
+    assert bookings[1].id == booking1.id
+
+
+    
