@@ -140,3 +140,48 @@ class PaymentViewSet(ModelViewSet):
             "message": "Payment confirmed and held.",
             "data": PaymentDetailSerializer(payment).data
         })
+    
+    @action(detail=True, methods=['POST'])
+    def release(self, request, pk=None):
+        """
+        Release payment to professional.
+        Can be called by admin or customer after booking is completed.
+        """
+        payment = self.get_object()
+
+        # Check permissions
+        if request.user.role == 'admin':
+            # Admin can release any payment
+            pass
+        elif payment.booking.customer.user == request.user:
+            # Customer can release their own payment
+            pass
+        else:
+            return Response(
+                {"error": "Only admin or customer can release payment."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if payment.status != 'HELD':
+            return Response(
+                {"error": f"Cannot release payment with status {payment.status}."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if payment.booking.status != 'COMPLETED':
+            return Response(
+                {"error": "Cannot release payment for incomplete booking."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        self._update_status(
+            payment, 'RELEASED', request.user,
+            note='Payment released to professional'
+        )
+
+        # TODO: Trigger actual payout to professional (when payment gateway integrated)
+
+        return Response({
+            "message": "Payment released to professional.",
+            "data": PaymentDetailSerializer(payment).data
+        })
