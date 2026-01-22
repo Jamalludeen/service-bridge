@@ -185,3 +185,37 @@ class PaymentViewSet(ModelViewSet):
             "message": "Payment released to professional.",
             "data": PaymentDetailSerializer(payment).data
         })
+    
+    @action(detail=True, methods=['POST'])
+    def cancel(self, request, pk=None):
+        """
+        Cancel a payment.
+        Can be called by customer if payment is still PENDING.
+        """
+        payment = self.get_object()
+
+        # Only customer can cancel
+        if payment.booking.customer.user != request.user:
+            return Response(
+                {"error": "Only the customer can cancel payment."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        if payment.status != 'PENDING':
+            return Response(
+                {"error": f"Cannot cancel payment with status {payment.status}."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        cancellation_reason = request.data.get('notes', '')
+
+        self._update_status(
+            payment, 'CANCELLED', request.user,
+            note=f'Payment cancelled: {cancellation_reason}',
+            notes=cancellation_reason
+        )
+
+        return Response({
+            "message": "Payment cancelled successfully.",
+            "data": PaymentDetailSerializer(payment).data
+        })
