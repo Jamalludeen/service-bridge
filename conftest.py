@@ -58,7 +58,7 @@ def admin_user(db):
 @pytest.fixture
 def authenticated_client(api_client, user):
     api_client.force_authenticate(user=user)
-    return APIClient
+    return api_client
 
 @pytest.fixture
 def professional_client(api_client, professional_user):
