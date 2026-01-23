@@ -51,4 +51,10 @@ def test_payment_amount_must_be_positive(booking):
     )
     with pytest.raises(ValidationError):
         payment.full_clean()
-        
+
+
+@pytest.mark.django_db
+def test_payment_str_representation(payment):
+    expected = f"Payment {payment.transaction_id} - {payment.amount} AFN ({payment.status})"
+    assert str(payment) == expected
+
