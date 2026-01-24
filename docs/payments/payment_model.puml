@@ -1,0 +1,14 @@
+@startuml
+' Payment Model UML
+class Payment {
+  +id: UUID
+  +booking: Booking
+  +amount: Decimal
+  +transaction_id: str
+  +status: str
+  +created_at: datetime
+  +updated_at: datetime
+}
+
+Payment --> Booking : relates to
+@enduml

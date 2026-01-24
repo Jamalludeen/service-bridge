@@ -1,0 +1,16 @@
+@startuml
+' Payment Workflow UML
+title Payment Workflow
+start
+:Customer books a service;
+:Booking created;
+:Payment initiated;
+if (Payment successful?) then (yes)
+  :Update payment status to PAID;
+  :Notify customer and professional;
+else (no)
+  :Update payment status to FAILED;
+  :Notify customer;
+endif
+stop
+@enduml
