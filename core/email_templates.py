@@ -38,30 +38,6 @@ OTP_EMAIL_TEMPLATE = """<!DOCTYPE html>
             border-bottom: 1px solid #f0f0f0;
         }}
         
-        .logo {{
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 28px;
-            font-weight: 800;
-        }}
-        
-        .brand-name {{
-            color: #333;
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }}
-        
         .brand-subtitle {{
             color: #666;
             font-size: 16px;
@@ -145,64 +121,11 @@ OTP_EMAIL_TEMPLATE = """<!DOCTYPE html>
             font-size: 14px;
         }}
         
-        .footer {{
-            background: #f8f9fa;
-            padding: 30px;
-            text-align: center;
-            border-top: 1px solid #e9ecef;
-        }}
-        
-        .social-links {{
-            margin: 20px 0;
-        }}
-        
-        .social-link {{
-            display: inline-block;
-            margin: 0 10px;
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
-            transition: color 0.3s;
-        }}
-        
-        .social-link:hover {{
-            color: #764ba2;
-        }}
-        
-        .social-icon {{
-            width: 30px;
-            height: 30px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            margin-right: 8px;
-            font-size: 14px;
-        }}
-        
         .copyright {{
             color: #888;
             font-size: 12px;
             margin-top: 20px;
-        }}
-        
-        .button {{
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 12px 30px;
-            text-decoration: none;
-            border-radius: 25px;
-            font-weight: 600;
-            margin: 10px 5px;
-            transition: transform 0.3s;
-        }}
-        
-        .button:hover {{
-            transform: translateY(-2px);
+            text-align: center;
         }}
         
         @media (max-width: 600px) {{
@@ -225,8 +148,6 @@ OTP_EMAIL_TEMPLATE = """<!DOCTYPE html>
 <body>
     <div class="email-container">
         <div class="header">
-            <div class="logo">👨‍💼</div>
-            <h1 class="brand-name">پلتفورم هوشمند خدمت</h1>
             <p class="brand-subtitle">Smart Service Platform</p>
         </div>
         
@@ -251,34 +172,8 @@ OTP_EMAIL_TEMPLATE = """<!DOCTYPE html>
                 </div>
             </div>
             
-            <div style="text-align: center; margin-top: 30px;">
-                <a href="#" class="button">ورود به پنل کاربری</a>
-                <a href="#" class="button" style="background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);">پشتیبانی آنلاین</a>
-            </div>
-        </div>
-        
-        <div class="footer">
-            <div class="social-links">
-                <a href="#" class="social-link">
-                    <span class="social-icon">📘</span> فیسبوک
-                </a>
-                <a href="#" class="social-link">
-                    <span class="social-icon">📷</span> اینستاگرام
-                </a>
-                <a href="#" class="social-link">
-                    <span class="social-icon">💼</span> لینکدین
-                </a>
-                <a href="#" class="social-link">
-                    <span class="social-icon">🐦</span> توییتر
-                </a>
-                <a href="#" class="social-link">
-                    <span class="social-icon">📱</span> تلگرام
-                </a>
-            </div>
-            
             <p class="copyright">
-                © {current_year} پلتفورم هوشمند خدمت - تمامی حقوق محفوظ است<br>
-                آدرس: کابل، افغانستان | تلفن: ۰۷۸۰ ۱۲۳ ۴۵۶۷ | ایمیل: info@smartservice.af
+                © {current_year} تمامی حقوق محفوظ است<br>
             </p>
         </div>
     </div>
@@ -318,6 +213,7 @@ WELCOME_EMAIL_TEMPLATE = """<!DOCTYPE html>
             border-radius: 25px;
             overflow: hidden;
             box-shadow: 0 30px 80px rgba(0, 0, 0, 0.2);
+            width: 100%;
         }}
         
         .confetti-top {{
@@ -421,142 +317,6 @@ WELCOME_EMAIL_TEMPLATE = """<!DOCTYPE html>
             margin: 10px 0;
         }}
         
-        .features-grid {{
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-            margin: 30px 0;
-        }}
-        
-        .feature-card {{
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-            border: 1px solid #f0f0f0;
-            transition: transform 0.3s;
-        }}
-        
-        .feature-card:hover {{
-            transform: translateY(-5px);
-        }}
-        
-        .feature-icon {{
-            width: 50px;
-            height: 50px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            color: white;
-            font-size: 22px;
-        }}
-        
-        .feature-title {{
-            color: #333;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }}
-        
-        .feature-desc {{
-            color: #666;
-            font-size: 12px;
-            line-height: 1.4;
-        }}
-        
-        .cta-section {{
-            text-align: center;
-            margin: 40px 0 30px;
-        }}
-        
-        .cta-button {{
-            display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 40px;
-            text-decoration: none;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 18px;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-            transition: all 0.3s;
-        }}
-        
-        .cta-button:hover {{
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
-        }}
-        
-        .stats-grid {{
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin: 40px 0;
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-        }}
-        
-        .stat-item {{
-            text-align: center;
-        }}
-        
-        .stat-number {{
-            font-size: 28px;
-            font-weight: 800;
-            color: #667eea;
-            display: block;
-        }}
-        
-        .stat-label {{
-            font-size: 12px;
-            color: #666;
-            margin-top: 5px;
-        }}
-        
-        .social-section {{
-            background: #f8f9fa;
-            border-radius: 20px;
-            padding: 30px;
-            margin-top: 30px;
-            text-align: center;
-        }}
-        
-        .social-title {{
-            color: #333;
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }}
-        
-        .social-icons {{
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }}
-        
-        .social-icon-circle {{
-            width: 45px;
-            height: 45px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-decoration: none;
-            font-size: 20px;
-            transition: transform 0.3s;
-        }}
-        
-        .social-icon-circle:hover {{
-            transform: scale(1.1);
-        }}
-        
         .footer-note {{
             text-align: center;
             padding: 30px;
@@ -580,14 +340,6 @@ WELCOME_EMAIL_TEMPLATE = """<!DOCTYPE html>
         @media (max-width: 600px) {{
             .welcome-content {{
                 padding: 0 20px 20px;
-            }}
-            
-            .features-grid {{
-                grid-template-columns: 1fr;
-            }}
-            
-            .stats-grid {{
-                grid-template-columns: 1fr;
             }}
             
             .confetti-top {{
@@ -621,59 +373,6 @@ WELCOME_EMAIL_TEMPLATE = """<!DOCTYPE html>
                     ✅ ایمیل شما تأیید شد | ✅ حساب شما فعال است | ✅ آماده استفاده!
                 </div>
             </div>
-            
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">🔍</div>
-                    <h3 class="feature-title">جستجوی خدمات</h3>
-                    <p class="feature-desc">صدها خدمت‌دهنده حرفه‌ای را بیابید</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📅</div>
-                    <h3 class="feature-title">رزرو نوبت</h3>
-                    <p class="feature-desc">زمان مورد نظر خود را رزرو کنید</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⭐</div>
-                    <h3 class="feature-title">امتیازدهی</h3>
-                    <p class="feature-desc">تجربه خود را به اشتراک بگذارید</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💰</div>
-                    <h3 class="feature-title">پرداخت امن</h3>
-                    <p class="feature-desc">پرداخت‌های مطمئن و سریع</p>
-                </div>
-            </div>
-            
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-number">۵۰۰+</span>
-                    <span class="stat-label">خدمت‌دهنده</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">۱۰K+</span>
-                    <span class="stat-label">کاربر فعال</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-number">۹۸٪</span>
-                    <span class="stat-label">رضایت کاربران</span>
-                </div>
-            </div>
-            
-            <div class="cta-section">
-                <a href="#" class="cta-button">شروع کار با پلتفرم 🚀</a>
-            </div>
-            
-            <div class="social-section">
-                <h3 class="social-title">ما را در شبکه‌های اجتماعی دنبال کنید</h3>
-                <div class="social-icons">
-                    <a href="#" class="social-icon-circle">📘</a>
-                    <a href="#" class="social-icon-circle">📷</a>
-                    <a href="#" class="social-icon-circle">💼</a>
-                    <a href="#" class="social-icon-circle">🐦</a>
-                    <a href="#" class="social-icon-circle">📱</a>
-                </div>
-            </div>
         </div>
         
         <div class="footer-note">
@@ -682,8 +381,6 @@ WELCOME_EMAIL_TEMPLATE = """<!DOCTYPE html>
                 پلتفرم جامع ارائه خدمات حرفه‌ای در افغانستان
             </div>
             <div class="footer-contact">
-                کابل، افغانستان | تلفن: ۰۷۸۰ ۱۲۳ ۴۵۶۷ | ایمیل: support@smartservice.af
-                <br>
                 © {current_year} تمامی حقوق محفوظ است
             </div>
         </div>
