@@ -8,6 +8,7 @@ from booking.models import Booking
 
 @pytest.mark.django_db
 def test_payment_creation(payment):
+    """Test creating a payment instance."""
     assert payment.id is not None
     assert payment.booking is not None
     assert payment.amount is not None
@@ -16,6 +17,7 @@ def test_payment_creation(payment):
 
 @pytest.mark.django_db
 def test_payment_transaction_id_is_unique(booking, customer_profile, professional, service):
+    """Test that each payment has a unique transaction ID."""
     payment1 = Payment.objects.create(
         booking=booking,
         amount=Decimal('499.99'),
@@ -41,9 +43,9 @@ def test_payment_transaction_id_is_unique(booking, customer_profile, professiona
 
     assert payment1.transaction_id != payment2.transaction_id
 
-
 @pytest.mark.django_db
 def test_payment_amount_must_be_positive(booking):
+    """Test that payment amount must be positive."""
     from django.core.exceptions import ValidationError
     payment = Payment.objects.create(
         booking=booking,
@@ -52,9 +54,9 @@ def test_payment_amount_must_be_positive(booking):
     with pytest.raises(ValidationError):
         payment.full_clean()
 
-
 @pytest.mark.django_db
 def test_payment_str_representation(payment):
+    """Test the string representation of the Payment model."""
     expected = f"Payment {payment.transaction_id} - {payment.amount} AFN ({payment.status})"
     assert str(payment) == expected
 

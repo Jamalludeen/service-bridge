@@ -6,6 +6,7 @@ from .models import Booking
 
 @pytest.mark.django_db
 def test_bookings_unauthenticated(api_client):
+    """Test listing bookings without authentication"""
     urls = reverse('booking-list')
     response = api_client.get(urls)
 
@@ -13,6 +14,7 @@ def test_bookings_unauthenticated(api_client):
 
 @pytest.mark.django_db
 def test_bookings_list_with_authenticated_user(authenticated_client):
+    """Test listing bookings with an authenticated user"""
     urls = reverse('booking-list')
     response = authenticated_client.get(urls)
 
@@ -20,6 +22,7 @@ def test_bookings_list_with_authenticated_user(authenticated_client):
 
 @pytest.mark.django_db
 def test_booking_retrieve_with_unauthenticated_user(api_client, booking):
+    """Test retrieving a booking without authentication"""
     urls = reverse('booking-detail', args=[booking.id])
     response = api_client.get(urls)
 
@@ -27,6 +30,7 @@ def test_booking_retrieve_with_unauthenticated_user(api_client, booking):
 
 @pytest.mark.django_db
 def test_booking_retrieve_with_authenticated_user(authenticated_client, booking):
+    """Test retrieving a booking with an authenticated user"""
     url = reverse('booking-detail', args=[booking.id])
     response = authenticated_client.get(url)
     assert response.status_code == status.HTTP_200_OK
@@ -35,6 +39,7 @@ def test_booking_retrieve_with_authenticated_user(authenticated_client, booking)
 
 @pytest.mark.django_db
 def test_create_booking_as_customer(authenticated_client, service):
+    """Test creating a booking as a customer"""
     url = reverse('booking-list')
     data = {
         'service_id': service.id,
@@ -60,6 +65,7 @@ def test_create_booking_as_customer(authenticated_client, service):
 
 @pytest.mark.django_db
 def test_create_booking_with_invalid_data(authenticated_client):
+    """Test creating a booking with invalid data"""
     url = reverse('booking-list')
     data = {
         'service_id': 9999,  # assuming this service does not exist
@@ -72,4 +78,31 @@ def test_create_booking_with_invalid_data(authenticated_client):
     }
     response = authenticated_client.post(url, data, format='json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
-    
+
+@pytest.mark.django_db
+def test_create_booking_with_past_date(authenticated_client, service):
+    """Test creating a booking with a past scheduled date"""
+    url = reverse('booking-list')
+    data = {
+        'service_id': service.id,
+        'scheduled_date': '2000-01-01',  # past date
+        'scheduled_time': '10:00:00',
+        'address': '123 Main St',
+        'city': 'Metropolis',
+        'estimated_price': '150.00',
+        'quantity': 1,
+    }
+    response = authenticated_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'scheduled_date' in response.data
+
+@pytest.mark.django_db
+def test_retrieve_booking_as_customer(authenticated_client, user, booking):
+    """Test that a customer can retrieve their own booking"""
+    booking.customer.user = user
+    booking.customer.save()
+
+    url = reverse('booking-detail', args=[booking.id])
+    response = authenticated_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+
