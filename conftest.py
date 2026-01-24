@@ -58,6 +58,8 @@ def admin_user(db):
 @pytest.fixture
 def authenticated_client(api_client, user):
     api_client.force_authenticate(user=user)
+    if user.role == 'customer':
+        CustomerProfile.objects.get_or_create(user=user, defaults={'city': 'kabul', 'district': '13th'})
     return api_client
 
 @pytest.fixture
@@ -73,11 +75,14 @@ def admin_client(api_client, admin_user):
 @pytest.fixture
 def customer_profile(user, db):
     from customer.models import CustomerProfile
-    return CustomerProfile.objects.create(
+    profile, _ = CustomerProfile.objects.get_or_create(
         user=user,
-        city='kabul',
-        district='13th'
+        defaults={
+            'city': 'kabul',
+            'district': '13th'
+        }
     )
+    return profile
 
 @pytest.fixture
 def professional(professional_user, db):

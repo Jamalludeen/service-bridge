@@ -1,7 +1,7 @@
 import pytest
 from rest_framework import status
 from django.urls import reverse
-
+from .models import Booking
 
 
 @pytest.mark.django_db
@@ -34,7 +34,7 @@ def test_booking_retrieve_with_authenticated_user(authenticated_client, booking)
     assert response.data.get('id') == booking.id
 
 @pytest.mark.django_db
-def test_create_booking_as_customer(authenticated_client, service, customer_profile, professional):
+def test_create_booking_as_customer(authenticated_client, service):
     url = reverse('booking-list')
     data = {
         'service_id': service.id,
@@ -43,6 +43,17 @@ def test_create_booking_as_customer(authenticated_client, service, customer_prof
         'address': '123 Main St',
         'city': 'Metropolis',
         'estimated_price': '150.00',
+        'quantity': 7,
     }
     response = authenticated_client.post(url, data, format='json')
     assert response.status_code == status.HTTP_201_CREATED
+
+    assert 'id' in response.data
+    assert response.data['status'] == 'PENDING'
+
+    booking_id = response.data['id']
+    assert Booking.objects.filter(id=booking_id).exists()
+
+    booking = Booking.objects.get(id=booking_id)
+    assert booking.city == 'Metropolis'
+    assert booking.quantity == 7

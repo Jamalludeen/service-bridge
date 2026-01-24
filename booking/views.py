@@ -79,7 +79,15 @@ class BookingViewSet(ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
         
-        return super().create(request, *args, **kwargs)
+        serializer = self.get_serializer(data=request.data, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        detail_serializer = BookingDetailSerializer(serializer.instance)
+        return Response(
+            detail_serializer.data,
+            status=status.HTTP_201_CREATED
+        )
 
     def _update_status(self, booking, new_status, user, note='', **extra_fields):
         """Helper to update status with history tracking"""
