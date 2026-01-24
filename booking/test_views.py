@@ -57,3 +57,19 @@ def test_create_booking_as_customer(authenticated_client, service):
     booking = Booking.objects.get(id=booking_id)
     assert booking.city == 'Metropolis'
     assert booking.quantity == 7
+
+@pytest.mark.django_db
+def test_create_booking_with_invalid_data(authenticated_client):
+    url = reverse('booking-list')
+    data = {
+        'service_id': 9999,  # assuming this service does not exist
+        'scheduled_date': 'invalid-date',
+        'scheduled_time': '10:00:00',
+        'address': '',
+        'city': 'Metropolis',
+        'estimated_price': '-50.00',
+        'quantity': 0,
+    }
+    response = authenticated_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    
