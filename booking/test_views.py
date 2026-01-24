@@ -106,3 +106,14 @@ def test_retrieve_booking_as_customer(authenticated_client, user, booking):
     response = authenticated_client.get(url)
     assert response.status_code == status.HTTP_200_OK
 
+@pytest.mark.django_db
+def test_retrieve_other_user_booking_foribidden(authenticated_client, booking):
+    """Test that a user cannot retrieve another user's booking"""
+    url = reverse('booking-detail', kwargs={'pk': booking.id})
+    response = authenticated_client.get(url)
+    assert response.status_code == status.HTTP_403_FORBIDDEN
+    # TODO: this returns 200 OK because the bug exists in the associated to, other 
+    # users should not have access bookings, fix it later.
+
+# @pytest.mark.django_db
+# def test_update_booking_as_customer()
