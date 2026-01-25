@@ -12,7 +12,7 @@ class ServiceCategoryFactory(DjangoModelFactory):
     class Meta:
         model = ServiceCategory
     
-    name = factory.sequence(lambda n: f'category{n}')
+    name = factory.LazyFunction(lambda: fake.word().title())
 
 class ServiceFactory(DjangoModelFactory):
     class Meta:
@@ -20,7 +20,7 @@ class ServiceFactory(DjangoModelFactory):
     
     professional = factory.SubFactory(ProfessionalFactory)
     category = factory.SubFactory(ServiceCategoryFactory)
-    title = factory.sequence(lambda: fake.job())
-    description = factory.sequence(lambda: fake.text(max_nb_chars=1000))
+    title = factory.LazyFunction(lambda: fake.job())
+    description = factory.LazyFunction(lambda: fake.text(max_nb_chars=1000))
     pricing_type = 'HOURLY'
     price_per_unit = factory.LazyFunction(lambda: fake.random_int(min=300, max=1200))
