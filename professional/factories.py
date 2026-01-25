@@ -16,5 +16,24 @@ class ProfessionalFactory(DjangoModelFactory):
     bio = factory.LazyFunction(lambda: fake.text(max_nb_chars=200))
     years_of_experience = factory.LazyFunction(lambda: fake.random_int(min=0, max=10))
     verification_status = 'VERIFIED'
-    services = factory.LazyFunction(lambda: [])  # You can customize this to add actual ServiceCategory instances if needed
+
+    @factory.post_generation
+    def services(self, create, extracted, **kwargs):
+        """Attach service categories after creation.
+
+        Usage in tests: ProfessionalFactory(services=[cat1, cat2])
+        If not provided, a single ServiceCategoryFactory will be created and attached.
+        """
+        if not create:
+            return
+
+        if extracted:
+            # extracted is expected to be an iterable of ServiceCategory instances
+            for svc in extracted:
+                self.services.add(svc)
+        else:
+            # lazy import to avoid circular imports at module import time
+            from service.factories import ServiceCategoryFactory
+            cat = ServiceCategoryFactory()
+            self.services.add(cat)
     
