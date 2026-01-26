@@ -61,3 +61,26 @@ class Review(models.Model):
     def __str__(self):
         return f"Review by {self.customer.username} for {self.professional.user.username} - {self.rating}⭐"
 
+class ReviewResponse(models.Model):
+    """Professional's response to a customer review"""
+
+    review = models.OneToOneField(
+        Review,
+        on_delete=models.CASCADE,
+        related_name='response'
+    )
+    professional = models.ForeignKey(
+        Professional,
+        on_delete=models.CASCADE,
+        related_name='review_responses'
+    )
+    response_text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Response by {self.professional.user.username} to review #{self.review.id}"
+
