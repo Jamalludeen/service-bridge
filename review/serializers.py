@@ -93,3 +93,18 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
 
         return value
     
+    def create(self, validated_data):
+        request = self.context.get('request')
+        booking = validated_data['booking']
+
+        # Automatically set customer and professional
+        validated_data['customer'] = request.user
+        validated_data['professional'] = booking.professional
+
+        review = Review.objects.create(**validated_data)
+
+        # Update professional's average rating
+        self.update_professional_rating(booking.professional)
+
+        return review
+    
