@@ -58,3 +58,38 @@ class ReviewListSerializer(serializers.ModelSerializer):
         if full_name:
             return full_name
         return user.username
+
+class ReviewCreateSerializer(serializers.ModelSerializer):
+    """Serializer for creating a review"""
+
+    class Meta:
+        model = Review
+        fields = ['booking', 'rating', 'comment']
+
+    def validate_booking(self, value):
+        """Ensure booking is completed and belongs to the user"""
+        request = self.context.get('request')
+        user = request.user
+
+        # Check if booking exists and belongs to user
+        try:
+            booking = Booking.objects.get(id=value.id, customer__user=user)
+        except Booking.DoesNotExist:
+            raise serializers.ValidationError(
+                "Booking not found or doesn't belong to you."
+            )
+
+        # Check if booking is completed
+        if booking.status != 'COMPLETED':
+            raise serializers.ValidationError(
+                "You can only review completed bookings."
+            )
+
+        # Check if review already exists
+        if hasattr(booking, 'review'):
+            raise serializers.ValidationError(
+                "You have already reviewed this booking."
+            )
+
+        return value
+    
