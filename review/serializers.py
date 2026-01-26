@@ -165,3 +165,12 @@ class ReviewDetailSerializer(serializers.ModelSerializer):
         if full_name:
             return full_name
         return user.username
+
+
+class ProfessionalReviewStatsSerializer(serializers.Serializer):
+    """Statistics for professional's reviews"""
+
+    average_rating = serializers.FloatField()
+    total_reviews = serializers.IntegerField()
+    rating_breakdown = serializers.DictField()
+    recent_reviews = ReviewListSerializer(many=True)
