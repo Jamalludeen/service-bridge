@@ -59,6 +59,7 @@ class ReviewListSerializer(serializers.ModelSerializer):
             return full_name
         return user.username
 
+
 class ReviewCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a review"""
 
@@ -123,4 +124,44 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
         professional.avg_rating = round(avg_rating, 2) if avg_rating else 0.0
         professional.total_reviews = total_reviews
         professional.save(update_fields=['avg_rating', 'total_reviews'])
-    
+
+
+class ReviewDetailSerializer(serializers.ModelSerializer):
+    """Detailed view of a review"""
+
+    customer_name = serializers.SerializerMethodField()
+    professional_name = serializers.CharField(
+        source='professional.user.get_full_name',
+        read_only=True
+    )
+    service_title = serializers.CharField(
+        source='booking.service.title',
+        read_only=True
+    )
+    booking_id = serializers.IntegerField(source='booking.id', read_only=True)
+    response = ReviewResponseSerializer(read_only=True)
+
+    class Meta:
+        model = Review
+        fields = [
+            'id',
+            'booking_id',
+            'customer_name',
+            'professional_name',
+            'service_title',
+            'rating',
+            'comment',
+            'is_approved',
+            'is_flagged',
+            'response',
+            'created_at',
+            'updated_at'
+        ]
+
+    def get_customer_name(self, obj):
+        user = obj.customer
+        full_name = user.get_full_name()
+
+        if full_name:
+            return full_name
+        return user.username
