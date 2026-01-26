@@ -108,3 +108,19 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
 
         return review
     
+    def update_professional_rating(self, professional):
+        """Recalculate and update professional's average rating"""
+        avg_rating = Review.objects.filter(
+            professional=professional,
+            is_approved=True
+        ).aggregate(avg=Avg('rating'))['avg']
+
+        total_reviews = Review.objects.filter(
+            professional=professional,
+            is_approved=True
+        ).count()
+
+        professional.avg_rating = round(avg_rating, 2) if avg_rating else 0.0
+        professional.total_reviews = total_reviews
+        professional.save(update_fields=['avg_rating', 'total_reviews'])
+    
