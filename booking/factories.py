@@ -1,14 +1,13 @@
-import factory
 from factory.django import DjangoModelFactory
-from faker import Faker
-from decimal import Decimal
 from datetime import date, time, timedelta
+from decimal import Decimal
+from faker import Faker
+import factory
 
-from .models import Booking
-from core.factories import UserFactory
-from customer.factories import CustomerFactory
 from professional.factories import ProfessionalFactory 
+from customer.factories import CustomerFactory
 from service.factories import ServiceFactory
+from .models import Booking
 
 fake = Faker()
 

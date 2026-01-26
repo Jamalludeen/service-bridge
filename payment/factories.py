@@ -1,10 +1,11 @@
-import factory
 from factory.django import DjangoModelFactory
-from .models import Payment
-from booking.factories import BookingFactory
-from faker import Faker
 from decimal import Decimal
+from faker import Faker
+import factory
 import uuid
+
+from booking.factories import BookingFactory
+from .models import Payment
 
 fake = Faker()
 

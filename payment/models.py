@@ -1,10 +1,10 @@
-from django.db import models
 from django.core.validators import MinValueValidator
+from django.db import models
 from decimal import Decimal
 import uuid
 
-from core.models import User
 from booking.models import Booking
+from core.models import User
 
 
 class Payment(models.Model):
