@@ -1,10 +1,9 @@
-
 from rest_framework import serializers
 from django.db.models import Avg
 
+from professional.models import Professional
 from .models import Review, ReviewResponse
 from booking.models import Booking
-from professional.models import Professional
 
 
 class ReviewResponseSerializer(serializers.ModelSerializer):
