@@ -1,0 +1,83 @@
+@startuml Service Workflow
+!theme plain
+skinparam ActivityBackgroundColor LightYellow
+skinparam ActivityBorderColor Black
+skinparam ActivityDiamondBackgroundColor LightGray
+
+title Service Lifecycle Workflow
+
+start
+
+partition "Service Creation (Professional)" {
+    :Professional logs in;
+
+    if (Has Professional profile?) then (no)
+        :Create Professional profile first;
+        stop
+    else (yes)
+    endif
+
+    :Fill service details|
+    :- Select category
+    - Add title & description
+    - Upload image (optional)
+    - Set pricing type & price;
+
+    :Submit POST /available-services/;
+
+    if (Validation successful?) then (yes)
+        :Create Service with is_active=True;
+        :Return service data;
+    else (no)
+        :Return validation errors;
+        stop
+    endif
+}
+
+partition "Service Management" {
+    fork
+        :Customers browse services;
+        :Filter by category, price, title;
+        :View active services only;
+    fork again
+        :Professional views own services;
+        :Update service details;
+        :Change pricing;
+    fork again
+        :Admin views all services;
+        :Can modify any service;
+    end fork
+}
+
+partition "Service Activation/Deactivation" {
+    if (Action requested?) then (Activate)
+        if (Already active?) then (yes)
+            :Return "already active";
+        else (no)
+            :Set is_active = True;
+            :Save to database;
+            :Return success;
+        endif
+    else (Disable)
+        if (Already disabled?) then (yes)
+            :Return "already disabled";
+        else (no)
+            :Set is_active = False;
+            :Save to database;
+            :Return success;
+        endif
+    endif
+}
+
+partition "Service Booking" {
+    :Customer selects service;
+    :Creates booking request;
+    note right
+        Service details copied
+        to booking for history
+    end note
+}
+
+stop
+
+@enduml

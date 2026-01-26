@@ -1,0 +1,75 @@
+@startuml Service Model
+!define ENTITY class
+!define ENUM enum
+
+skinparam class {
+    BackgroundColor LightYellow
+    BorderColor Black
+    ArrowColor Black
+}
+
+' Main Service Entity
+ENTITY Service {
+    +id: Integer (PK)
+    +professional_id: ForeignKey
+    +category_id: ForeignKey
+    +title: CharField(255)
+    +description: TextField
+    +image: ImageField
+    +pricing_type: CharField(20)
+    +price_per_unit: Decimal(10,2)
+    +is_active: Boolean
+    +created_at: DateTimeField
+    --
+    __str__(): String
+}
+
+' Related Entities
+ENTITY Professional {
+    +id: Integer (PK)
+    +user_id: OneToOneField
+    +city: CharField(50)
+    +bio: TextField
+    +verification_status: CharField
+    +is_active: Boolean
+    +avg_rating: Float
+}
+
+ENTITY ServiceCategory {
+    +id: Integer (PK)
+    +name: CharField(255, unique)
+    --
+    __str__(): String
+}
+
+' Enumerations
+ENUM PricingType {
+    HOURLY
+    DAILY
+    FIXED
+    PER_UNIT
+}
+
+' Relationships
+Service "n" --> "1" Professional : belongs to
+Service "n" --> "1" ServiceCategory : categorized by
+Service ..> PricingType : uses
+
+' Notes
+note right of Service
+  **Image Upload Path:**
+  service_images/{username}/{filename}
+
+  **Allowed Extensions:**
+  jpg, jpeg, png
+
+  **Indexes:**
+  - (professional, category)
+end note
+
+note right of PricingType
+  Defines how the service
+  is charged to customers
+end note
+
+@enduml
