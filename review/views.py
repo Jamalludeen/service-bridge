@@ -129,3 +129,38 @@ class ReviewViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED
         )
+    
+    @action(detail=False, methods=['GET'], url_path='professional/(?P<professional_id>[^/.]+)/stats')
+    def professional_stats(self, request, professional_id=None):
+        """Get review statistics for a professional"""
+        try:
+            professional = Professional.objects.get(id=professional_id)
+        except Professional.DoesNotExist:
+            return Response(
+                {"error": "Professional not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Get approved reviews
+        reviews = Review.objects.filter(
+            professional=professional,
+            is_approved=True
+        )
+
+        # Calculate rating breakdown
+        rating_breakdown = {}
+        for i in range(1, 6):
+            rating_breakdown[f'{i}_star'] = reviews.filter(rating=i).count()
+
+        # Get recent reviews (top 5)
+        recent_reviews = reviews.select_related('customer', 'booking__service')[:5]
+
+        stats = {
+            'average_rating': professional.avg_rating,
+            'total_reviews': professional.total_reviews,
+            'rating_breakdown': rating_breakdown,
+            'recent_reviews': ReviewListSerializer(recent_reviews, many=True).data
+        }
+
+        return Response(stats, status=status.HTTP_200_OK)
+
