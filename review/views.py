@@ -28,7 +28,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
     - GET    /review/{id}/      - Review detail
     - PUT    /review/{id}/      - Update review (Customer, within 24hrs)
     - DELETE /review/{id}/      - Delete review (Admin only)
-    - POST   /review/{id}/respond/  - Professional responds to review
+    - POST   /review/{id}/respond/  - Professional responds to review 
     - GET    /review/professional/{id}/stats/  - Get professional's review stats
     """
 
@@ -41,7 +41,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if user.role == 'customer':
             # Customer sees their own reviews
             return Review.objects.filter(
-                customer__user=user,
+                customer=user,
                 is_approved=True
             ).select_related('booking', 'professional__user')
 
