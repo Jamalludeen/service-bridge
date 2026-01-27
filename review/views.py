@@ -41,7 +41,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         if user.role == 'customer':
             # Customer sees their own reviews
             return Review.objects.filter(
-                customer=user,
+                customer__user=user,
                 is_approved=True
             ).select_related('booking', 'professional__user')
 
