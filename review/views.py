@@ -73,3 +73,23 @@ class ReviewViewSet(viewsets.ModelViewSet):
         elif self.action == 'respond':
             return [IsAuthenticated(), IsProfessionalOfReview()]
         return [IsAuthenticated()]
+
+    def create(self, request, *args, **kwargs):
+        """Create a new review"""
+        if request.user.role != 'customer':
+            return Response(
+                {"error": "Only customers can create reviews."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        review = serializer.save()
+
+        return Response(
+            {
+                "message": "Review submitted successfully.",
+                "data": ReviewDetailSerializer(review).data
+            },
+            status=status.HTTP_201_CREATED
+        )
