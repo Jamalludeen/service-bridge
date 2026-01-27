@@ -93,3 +93,39 @@ class ReviewViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED
         )
+    
+    @action(detail=True, methods=['POST'])
+    def respond(self, request, pk=None):
+        """Professional responds to a review"""
+        review = self.get_object()
+
+        # Check if user is the professional being reviewed
+        if review.professional.user != request.user:
+            return Response(
+                {"error": "You can only respond to reviews about you."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        # Check if response already exists
+        if hasattr(review, 'response'):
+            return Response(
+                {"error": "You have already responded to this review."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = ReviewResponseSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        ReviewResponse.objects.create(
+            review=review,
+            professional=review.professional,
+            response_text=serializer.validated_data['response_text']
+        )
+
+        return Response(
+            {
+                "message": "Response added successfully.",
+                "data": ReviewDetailSerializer(review).data
+            },
+            status=status.HTTP_201_CREATED
+        )
