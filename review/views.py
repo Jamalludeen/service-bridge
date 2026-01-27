@@ -163,4 +163,20 @@ class ReviewViewSet(viewsets.ModelViewSet):
         }
 
         return Response(stats, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['GET'])
+    def my_reviews(self, request):
+        """Get current user's reviews"""
+        if request.user.role != 'customer':
+            return Response(
+                {"error": "Only customers have reviews."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        reviews = Review.objects.filter(
+            customer=request.user
+        ).select_related('booking__service', 'professional__user')
+
+        serializer = ReviewListSerializer(reviews, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
