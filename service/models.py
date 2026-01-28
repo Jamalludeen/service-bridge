@@ -47,3 +47,10 @@ class Service(models.Model):
 
     def __str__(self):
         return f'{self.professional.user.username} - {self.title}'
+    
+    @property
+    def professional_location(self):
+        """Return professional's location as (lat, lon) tuple"""
+        if self.professional.latitude and self.professional.longitude:
+            return (float(self.professional.latitude), float(self.professional.longitude))
+        return None
