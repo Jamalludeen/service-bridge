@@ -1,0 +1,41 @@
+@startuml
+title Review Data Model
+
+class Review {
+  +id: Integer
+  +booking: Booking [1..1]
+  +customer: User
+  +professional: Professional
+  +rating: Integer [1..5]
+  +comment: TextField
+  +is_approved: Boolean
+  +is_flagged: Boolean
+  +created_at: DateTime
+}
+
+class ReviewResponse {
+  +id: Integer
+  +review: Review [1..1]
+  +professional: Professional
+  +response_text: TextField
+  +created_at: DateTime
+}
+
+class Booking {
+  +id: Integer
+  +status: String
+}
+
+class Professional {
+  +id: Integer
+  +avg_rating: Float
+  +total_reviews: Integer
+}
+
+Review "1" -- "1" Booking : belongs to >
+Review "1" -- "1" ReviewResponse : has >
+Review "*" -- "1" Professional : receives <
+Review "*" -- "1" User : writes <
+ReviewResponse "*" -- "1" Professional : writes <
+
+@enduml
