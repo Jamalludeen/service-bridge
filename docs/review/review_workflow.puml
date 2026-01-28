@@ -1,0 +1,38 @@
+@startuml
+title Review Workflow
+autonumber
+
+actor Customer
+actor Professional
+actor Admin
+participant "Review API" as API
+database Database
+
+Customer -> API: POST /review/\n(booking_id, rating, comment)
+activate API
+API -> Database: Validate Booking (Completed?)
+API -> Database: Create Review (is_approved=True)
+API --> Customer: 201 Created
+deactivate API
+
+opt Review Moderation
+    Admin -> API: Flag/Moderate Review
+    API -> Database: Update is_flagged/is_approved
+end
+
+opt Professional Response
+    Professional -> API: POST /review/{id}/respond/
+    activate API
+    API -> Database: Retrieve Review
+    API -> Database: Create ReviewResponse
+    API --> Professional: 201 Created
+    deactivate API
+end
+
+Customer -> API: GET /review/
+activate API
+API -> Database: Fetch Reviews & Responses
+API --> Customer: List Reviews
+deactivate API
+
+@enduml
