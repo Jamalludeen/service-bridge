@@ -34,3 +34,23 @@ def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> fl
     distance = radius * c
     return round(distance, 2)
 
+def is_within_radius(
+    lat1: float,
+    lon1: float,
+    lat2: float,
+    lon2: float,
+    radius_km: float
+) -> bool:
+    """
+    Check if point 2 is within a given radius of point 1
+
+    Args:
+        lat1, lon1: Center point coordinates
+        lat2, lon2: Target point coordinates
+        radius_km: Radius in kilometers
+
+    Returns:
+        True if within radius, False otherwise
+    """
+    distance = haversine_distance(lat1, lon1, lat2, lon2)
+    return distance <= radius_km
