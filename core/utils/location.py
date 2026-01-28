@@ -54,3 +54,36 @@ def is_within_radius(
     """
     distance = haversine_distance(lat1, lon1, lat2, lon2)
     return distance <= radius_km
+
+def get_bounding_box(lat: float, lon: float, radius_km: float) -> Tuple[float, float, float, float]:
+    """
+    Calculate a bounding box (min_lat, max_lat, min_lon, max_lon)
+    around a center point for efficient database queries.
+
+    This creates a square approximation for initial filtering before
+    applying the precise Haversine distance calculation.
+
+    Args:
+        lat: Center latitude
+        lon: Center longitude
+        radius_km: Radius in kilometers
+
+    Returns:
+        Tuple of (min_lat, max_lat, min_lon, max_lon)
+    """
+    # Earth's radius in kilometers
+    earth_radius = 6371.0
+
+    # Angular distance in radians on a great circle
+    angular_distance = radius_km / earth_radius
+
+    # Convert to degrees (rough approximation)
+    lat_delta = math.degrees(angular_distance)
+    lon_delta = math.degrees(angular_distance / math.cos(math.radians(lat)))
+
+    min_lat = lat - lat_delta
+    max_lat = lat + lat_delta
+    min_lon = lon - lon_delta
+    max_lon = lon + lon_delta
+
+    return (min_lat, max_lat, min_lon, max_lon)
