@@ -3,7 +3,7 @@ from django.db.models import Q
 
 from .models import Service
 
-
+# TODO: UPDATE SERVICE VIEWS WITH LOCATION SEARCH 856
 class ServiceFilter(FilterSet):
     # Existing filters
     category = NumberFilter(field_name='category', lookup_expr='exact')
