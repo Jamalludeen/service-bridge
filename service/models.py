@@ -54,3 +54,12 @@ class Service(models.Model):
         if self.professional.latitude and self.professional.longitude:
             return (float(self.professional.latitude), float(self.professional.longitude))
         return None
+    
+    def distance_from(self, lat: float, lon: float):
+        """Calculate distance from given coordinates"""
+        from core.utils.location import haversine_distance
+
+        prof_location = self.professional_location
+        if prof_location:
+            return haversine_distance(lat, lon, prof_location[0], prof_location[1])
+        return None
