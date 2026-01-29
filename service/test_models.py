@@ -109,3 +109,27 @@ def test_service_image_upload_path_sanitizes_username(professional_user):
     assert path.startswith("service_images/john_doe_test/")
     assert path.endswith("/photo.png")
 
+
+@pytest.mark.django_db
+def test_service_image_extension_validation(professional):
+    category = ServiceCategory.objects.first() or ServiceCategory.objects.create(name="Plumbing")
+
+    invalid_file = SimpleUploadedFile(
+        "image.gif",
+        b"fake-content",
+        content_type="image/gif",
+    )
+
+    service = Service(
+        professional=professional,
+        category=category,
+        title="Bad image",
+        description="Should fail validation",
+        pricing_type="FIXED",
+        price_per_unit=Decimal("10.00"),
+        image=invalid_file,
+    )
+
+    with pytest.raises(ValidationError):
+        service.full_clean()
+
