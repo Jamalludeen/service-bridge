@@ -34,6 +34,9 @@ class ProfessionalServiceSerializer(serializers.ModelSerializer):
     category = serializers.PrimaryKeyRelatedField(queryset=ServiceCategory.objects.all())
     category_name = serializers.CharField(source="category.name", read_only=True)
 
+    distance_km = serializers.FloatField(read_only=True, required=False)
+    is_nearby = serializers.BooleanField(read_only=True, required=False)
+
     class Meta:
         model = Service
         fields = [
@@ -47,6 +50,8 @@ class ProfessionalServiceSerializer(serializers.ModelSerializer):
             "pricing_type",
             "price_per_unit",
             "is_active",
+            "distance_km",
+            "is_nearby", 
         ]
         read_only_fields = ["professional"]
 
