@@ -133,3 +133,26 @@ def test_service_image_extension_validation(professional):
     with pytest.raises(ValidationError):
         service.full_clean()
 
+
+@pytest.mark.django_db
+def test_service_professional_location_none_when_missing_coords(service, professional):
+    professional.latitude = None
+    professional.longitude = None
+    professional.save(update_fields=["latitude", "longitude"])
+
+    service.refresh_from_db()
+    assert service.professional_location is None
+    assert service.distance_from(34.5, 69.1) is None
+
+
+@pytest.mark.django_db
+def test_service_distance_from_returns_value_when_coords_present(service, professional):
+    professional.latitude = 34.5281
+    professional.longitude = 69.1714
+    professional.save(update_fields=["latitude", "longitude"])
+
+    service.refresh_from_db()
+
+    distance = service.distance_from(34.5281, 69.1714)
+    assert distance is not None
+    assert distance == pytest.approx(0.0, abs=1e-6)
