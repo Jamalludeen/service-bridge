@@ -72,3 +72,40 @@ def test_service_ordering_newest_first(professional):
     assert services[0].id == newer.id
     assert services[1].id == older.id
 
+
+@pytest.mark.django_db
+def test_service_image_upload_path_sanitizes_username(professional_user):
+    user = User.objects.create_user(
+        username="john doe.test",
+        email="john@example.com",
+        password="TestPass123",
+        phone="+93700000999",
+        role="professional",
+        is_verified=True,
+    )
+
+    category = ServiceCategory.objects.create(name="Electrical")
+
+    pro = Professional.objects.create(
+        user=user,
+        years_of_experience=3,
+        city="Kabul",
+        bio="Electrician",
+        verification_status="VERIFIED",
+        is_active=True,
+    )
+    pro.services.add(category)
+
+    instance = Service(
+        professional=pro,
+        category=category,
+        title="Wiring",
+        description="House wiring",
+        pricing_type="FIXED",
+        price_per_unit=Decimal("100.00"),
+    )
+
+    path = service_image_upload_path(instance, "photo.png")
+    assert path.startswith("service_images/john_doe_test/")
+    assert path.endswith("/photo.png")
+
