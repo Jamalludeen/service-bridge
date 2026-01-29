@@ -208,3 +208,30 @@ class ServiceViewSet(ModelViewSet):
             },
             'results': response_data
         })
+    
+    @action(detail=False, methods=['GET'])
+    def nearby(self, request):
+        """
+        Get nearby services (simplified endpoint)
+
+        Query Parameters:
+            - lat: User latitude (required)
+            - lng: User longitude (required)
+            - radius: Search radius in km (default: 5)
+        """
+        lat = request.query_params.get('lat')
+        lng = request.query_params.get('lng')
+
+        if not lat or not lng:
+            return Response(
+                {"error": "Latitude and longitude are required"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Call the search action with location params
+        request.query_params._mutable = True
+        request.query_params['radius'] = request.query_params.get('radius', 5)
+        request.query_params['sort_by'] = 'distance'
+        request.query_params._mutable = False
+
+        return self.search(request)
