@@ -178,4 +178,33 @@ class ServiceViewSet(ModelViewSet):
         else:
             result = [{'service': service, 'distance_km': None} for service in queryset]
         
-        
+        sort_by = request.query_params.get("sort_by", "distance")
+        if sort_by == "distance" and lat and lng:
+            result.sort(key=lambda x: x['distance_km'] if x['distance_km'] is not None else float('inf'))
+        elif sort_by == 'rating':
+            result.sort(key=lambda x: x['service'].professional.avg_rating, reverse=True)
+        elif sort_by == 'price_low':
+            result.sort(key=lambda x: float(x['service'].price_per_unit))
+        elif sort_by == 'price_high':
+            result.sort(key=lambda x: float(x['service'].price_per_unit), reverse=True)
+
+        # Serialize result
+        serializer = self.get_serializer([r['service'] for r in result], many=True)
+        response_data = serializer.data
+
+        # Add distance to each result
+        for i, res in enumerate(result):
+            if res['distance_km'] is not None:
+                response_data[i]['distance_km'] = res['distance_km']
+                response_data[i]['is_nearby'] = res['distance_km'] <= 5  # Within 5km
+
+        return Response({
+            'count': len(response_data),
+            'filters_applied': {
+                'query': query,
+                'category': category,
+                'location': f"{lat}, {lng}" if lat and lng else None,
+                'radius_km': radius if lat and lng else None
+            },
+            'results': response_data
+        })
