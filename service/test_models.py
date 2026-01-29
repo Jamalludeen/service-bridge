@@ -26,3 +26,20 @@ def test_service_creation_defaults(professional):
     assert service.id is not None
     assert service.is_active is True
     assert service.created_at is not None
+
+
+@pytest.mark.django_db
+def test_service_string_representation(professional):
+    category = ServiceCategory.objects.first() or ServiceCategory.objects.create(name="Plumbing")
+
+    service = Service.objects.create(
+        professional=professional,
+        category=category,
+        title="AC repair",
+        description="Repair AC",
+        pricing_type="HOURLY",
+        price_per_unit=Decimal("100.00"),
+    )
+
+    assert str(service) == f"{professional.user.username} - {service.title}"
+
