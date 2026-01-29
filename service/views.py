@@ -7,9 +7,12 @@ from rest_framework.decorators import action
 from rest_framework import status
 
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Q
+
 
 from django.db import transaction
 
+from core.utils.location import bounding_box, haversine_distance
 from .permissions import IsProfessionalOwnerOrIsAdmin, IsAdminUserOrProfessionalOwner
 from .serializers import AdminServiceSerializer, ProfessionalServiceSerializer
 from .filters import ServiceFilter
@@ -105,5 +108,74 @@ class ServiceViewSet(ModelViewSet):
             {"message": "Service deactivated", "data": serializer.data},
             status=status.HTTP_200_OK,
         )
+    
+    @action(detail=False, methods=["GET"])
+    def search(self, request):
+        queryset = self.get_queryset()
+        query = request.query_params.get("q", '')
+        if query:
+            queryset = queryset.filter(
+                Q(title__icontains=query) |
+                Q(category__name__icontains=query) |
+                Q(description__icontains=query)
+            )
+
+        category = request.query_params.get("category")
+        if category:
+            queryset = queryset.filter(category__id=category)
+        
+        min_price = request.query_params.get("min_price")
+        max_price = request.query_params.get("max_price")
+
+        if min_price:
+            queryset = queryset.filter(price_per_unit__gte=min_price)
+        if max_price:
+            queryset = queryset.filter(price_per_unit__lte=max_price)
+        
+        min_rating = request.query_params.get("min_rating")
+        if min_rating:
+            queryset = queryset.filter(professional__avg_rating__gte=min_rating)
+        
+        lat = request.query_params.get("lat")
+        lng = request.query_params.get("lng")
+        radius = float(request.query_params.get("radius", 10)) # default 10km
+
+        result = []
+
+        if lat and lng:
+            try:
+                user_lat = float(lat)
+                user_lng = float(lng)
+
+                min_lat, max_lat, min_lng, max_lng = bounding_box(user_lat, user_lng, radius)
+        
+                queryset = queryset.filter(
+                    professional__latitude__gte=min_lat,
+                    professional__latitude__lte=max_lat,
+                    professional__longitude__gte=min_lng,
+                    professional__longitude__lte=max_lng,
+                ).exclude(
+                    professional__latitude__isnull=True,
+                ).exclude(
+                    professional__longitude__isnull=True,
+                )
+
+                for service in queryset:
+                    prof_lat = float(service.professional.latitude)
+                    prof_lng = float(service.professional.longitude)
+                    distance = haversine_distance(user_lat, user_lng, prof_lat, prof_lng)
+
+                    if distance <= radius:
+                        result.append({
+                            'service': service,
+                            'distance_km': distance,
+                        })
+            except ValueError:
+                return Response(
+                    {"message": "Invalid latitude or longitude"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            result = [{'service': service, 'distance_km': None} for service in queryset]
         
         
