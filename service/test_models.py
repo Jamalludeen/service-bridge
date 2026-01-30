@@ -13,7 +13,6 @@ from service.models import Service, service_image_upload_path
 @pytest.mark.django_db
 def test_service_creation_defaults(professional):
     category = ServiceCategory.objects.first() or ServiceCategory.objects.create(name="Plumbing")
-
     service = Service.objects.create(
         professional=professional,
         category=category,
