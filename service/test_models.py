@@ -1,19 +1,26 @@
+
+# Pytest is used for testing
 import pytest
 from decimal import Decimal
 from time import sleep
 
+
+# Django core exceptions and file utilities
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
+
+# Importing models from different apps
 from core.models import User
 from professional.models import Professional, ServiceCategory
 from service.models import Service, service_image_upload_path
 
 
+# Test service creation with default values
 @pytest.mark.django_db
 def test_service_creation_defaults(professional):
+    """Test that a Service object is created with default values."""
     category = ServiceCategory.objects.first() or ServiceCategory.objects.create(name="Plumbing")
-
     service = Service.objects.create(
         professional=professional,
         category=category,
