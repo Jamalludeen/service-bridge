@@ -26,11 +26,13 @@ class ReviewViewSet(viewsets.ModelViewSet):
     - POST   /review/           - Create review (Customer)
     - GET    /review/           - List reviews (filtered by user role)
     - GET    /review/{id}/      - Review detail
-    - PUT    /review/{id}/      - Update review (Customer, within 24hrs)
+    - PATCH  /review/{id}/      - Partial update review (Customer, within 24hrs)
     - DELETE /review/{id}/      - Delete review (Admin only)
     - POST   /review/{id}/respond/  - Professional responds to review 
     - GET    /review/professional/{id}/stats/  - Get professional's review stats
     """
+
+    http_method_names = ['get', 'post', 'patch', 'delete', 'head', 'options']
 
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -68,7 +70,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return ReviewDetailSerializer
 
     def get_permissions(self):
-        if self.action in ['update', 'partial_update', 'destroy']:
+        if self.action in ['partial_update', 'destroy']:
             return [IsAuthenticated(), IsReviewOwner()]
         elif self.action == 'respond':
             return [IsAuthenticated(), IsProfessionalOfReview()]
