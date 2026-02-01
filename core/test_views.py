@@ -61,3 +61,25 @@ def test_verify_otp(api_client):
     }
     response = api_client.post(url, data=data, format='json')
     assert response.status_code == status.HTTP_200_OK
+
+@pytest.mark.django_db
+def test_verify_otp_with_invalid_otp(api_client):
+    # first register user
+    user = User.objects.create_user(
+        username='testcustomer',
+        email='customer@gmail.com',
+        password='TestPass123',
+        phone='+93700000001',
+        role='customer',
+        is_verified=True,
+        otp='123456',
+        otp_created_at=timezone.now()
+    )
+
+    url = reverse('verify_otp')
+    data = {
+        'email': user.email,
+        'otp': f'{user.otp}0' # an extra 0 is concatenated with the original OTP to enforce its wrong case test
+    }
+    response = api_client.post(url, data=data, format='json')
+    assert response.status_code == status.HTTP_200_OK
