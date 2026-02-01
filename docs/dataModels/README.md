@@ -12,7 +12,7 @@ Notes:
 <!-- Embedded graphical UML for easy sharing with frontend/mobile teams -->
 
 <details>
-<summary>Diagram (expand to view)</summary>
+<summary>Diagrams (expand to view)</summary>
 
 ![Service & Booking diagram](service_booking.svg)
 
