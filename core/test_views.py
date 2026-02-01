@@ -1,6 +1,9 @@
+from django.utils import timezone
 from rest_framework import status
 from django.urls import reverse
 import pytest
+
+from core.models import User
 
 
 
@@ -33,5 +36,28 @@ def test_customer_registration_view(api_client):
         'phone': '+93788727887',
         'password': 'ILoveDjango',
     }
+
     response = api_client.post(url, data, format='json')
     assert response.status_code == status.HTTP_201_CREATED
+
+@pytest.mark.django_db
+def test_verify_otp(api_client):
+    # first register user
+    user = User.objects.create_user(
+        username='testcustomer',
+        email='customer@gmail.com',
+        password='TestPass123',
+        phone='+93700000001',
+        role='customer',
+        is_verified=True,
+        otp='123456',
+        otp_created_at=timezone.now()
+    )
+
+    url = reverse('verify_otp')
+    data = {
+        'email': user.email,
+        'otp': user.otp
+    }
+    response = api_client.post(url, data=data, format='json')
+    assert response.status_code == status.HTTP_200_OK
