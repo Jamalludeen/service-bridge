@@ -12,7 +12,7 @@ from django.db.models import Q
 
 from django.db import transaction
 
-from core.utils.location import bounding_box, haversine_distance
+from core.utils.location import get_bounding_box, haversine_distance
 from .permissions import IsProfessionalOwnerOrIsAdmin, IsAdminUserOrProfessionalOwner
 from .serializers import AdminServiceSerializer, ProfessionalServiceSerializer
 from .filters import ServiceFilter
@@ -147,7 +147,7 @@ class ServiceViewSet(ModelViewSet):
                 user_lat = float(lat)
                 user_lng = float(lng)
 
-                min_lat, max_lat, min_lng, max_lng = bounding_box(user_lat, user_lng, radius)
+                min_lat, max_lat, min_lng, max_lng = get_bounding_box(user_lat, user_lng, radius)
         
                 queryset = queryset.filter(
                     professional__latitude__gte=min_lat,
