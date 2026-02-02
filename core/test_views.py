@@ -2,6 +2,7 @@ from rest_framework.authtoken.models import Token
 from django.utils import timezone
 from rest_framework import status
 from django.urls import reverse
+from unittest.mock import patch
 import pytest
 
 from core.models import User
@@ -148,3 +149,21 @@ def test_logout_view(api_client, user):
 
     assert response.status_code == status.HTTP_200_OK
     assert not Token.objects.filter(user=user).exists()
+
+@pytest.mark.django_db
+def test_change_password_success(api_client, user):
+    token = Token.objects.create(user=user)
+    api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+
+    url = reverse('change_password')
+    data = {
+        'old_password': 'TestPass123',
+        'new_password': 'NewPass123',
+        'confirm_new_password': 'NewPass123',
+    }
+
+    response = api_client.post(url, data=data, format='json')
+
+    user.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert user.check_password('NewPass123')
