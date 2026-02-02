@@ -1,3 +1,4 @@
+from rest_framework.authtoken.models import Token
 from django.utils import timezone
 from rest_framework import status
 from django.urls import reverse
@@ -125,3 +126,25 @@ def test_request_new_otp_with_invalid_email(api_client):
 
     response = api_client.post(url, data=data, format='json')
     assert response.status_code == status.HTTP_404_NOT_FOUND
+
+@pytest.mark.django_db
+def test_logout_view(api_client, user):
+    user = User.objects.create_user(
+        username='testcustomer07',
+        email='customer07@gmail.com',
+        password='TestPass123',
+        phone='+93700000091',
+        role='customer',
+        is_verified=True,
+        otp='123456',
+        otp_created_at=timezone.now()
+    )
+    token = Token.objects.create(user=user)
+
+    api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+
+    url = reverse('logout')
+    response = api_client.post(url)
+
+    assert response.status_code == status.HTTP_200_OK
+    assert not Token.objects.filter(user=user).exists()
