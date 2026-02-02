@@ -183,3 +183,19 @@ def test_change_password_with_wrong_old_password(api_client, user):
     response = api_client.post(url, data=data, format='json')
 
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+@pytest.mark.django_db
+def test_forgot_password_sends_otp(api_client, user):
+    url = reverse('forgot_password')
+    data = {
+        'email': user.email,
+    }
+
+    with patch('core.views.send_mail') as mocked_send_mail:
+        response = api_client.post(url, data=data, format='json')
+
+    user.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert user.otp is not None
+    assert user.otp_created_at is not None
+    mocked_send_mail.assert_called()
