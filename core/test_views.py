@@ -167,3 +167,19 @@ def test_change_password_success(api_client, user):
     user.refresh_from_db()
     assert response.status_code == status.HTTP_200_OK
     assert user.check_password('NewPass123')
+
+@pytest.mark.django_db
+def test_change_password_with_wrong_old_password(api_client, user):
+    token = Token.objects.create(user=user)
+    api_client.credentials(HTTP_AUTHORIZATION='Token ' + token.key)
+
+    url = reverse('change_password')
+    data = {
+        'old_password': 'WrongPass123',
+        'new_password': 'NewPass123',
+        'confirm_new_password': 'NewPass123',
+    }
+
+    response = api_client.post(url, data=data, format='json')
+
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
