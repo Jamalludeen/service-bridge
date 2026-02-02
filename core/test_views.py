@@ -199,3 +199,25 @@ def test_forgot_password_sends_otp(api_client, user):
     assert user.otp is not None
     assert user.otp_created_at is not None
     mocked_send_mail.assert_called()
+
+@pytest.mark.django_db
+def test_reset_password_success(api_client, user):
+    user.otp = '123456'
+    user.otp_created_at = timezone.now()
+    user.save()
+
+    url = reverse('reset_password')
+    data = {
+        'email': user.email,
+        'otp': '123456',
+        'new_password': 'ResetPass123',
+        'confirm_new_password': 'ResetPass123',
+    }
+
+    response = api_client.post(url, data=data, format='json')
+
+    user.refresh_from_db()
+    assert response.status_code == status.HTTP_200_OK
+    assert user.check_password('ResetPass123')
+    assert user.otp is None
+    assert user.otp_created_at is None
