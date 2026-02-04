@@ -69,3 +69,30 @@ class ServiceSimilarity(models.Model):
         indexes = [
             models.Index(fields=['service_a', 'similarity_score']),
         ]
+
+
+class ProfessionalScore(models.Model):
+    """ML-computed professional quality scores"""
+
+    professional = models.OneToOneField(
+        'professional.Professional',
+        on_delete=models.CASCADE,
+        related_name='ml_score'
+    )
+
+    # Component scores (0.0 to 1.0)
+    rating_score = models.FloatField(default=0.5)
+    completion_rate_score = models.FloatField(default=0.5)
+    response_time_score = models.FloatField(default=0.5)
+    experience_score = models.FloatField(default=0.5)
+    consistency_score = models.FloatField(default=0.5)
+
+    # Final composite score
+    overall_score = models.FloatField(default=0.5)
+
+    # Metadata
+    bookings_analyzed = models.IntegerField(default=0)
+    last_computed_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-overall_score']
