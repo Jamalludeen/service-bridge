@@ -120,3 +120,30 @@ class CustomerPreference(models.Model):
     booking_frequency_days = models.FloatField(null=True, blank=True)
 
     last_computed_at = models.DateTimeField(auto_now=True)
+
+
+class RecommendationLog(models.Model):
+    """Track recommendations for A/B testing and improvement"""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='recommendation_logs'
+    )
+    recommendation_type = models.CharField(max_length=50)
+
+    # What was recommended
+    recommended_items = models.JSONField()  # List of IDs
+
+    # What was clicked/selected
+    selected_item_id = models.IntegerField(null=True, blank=True)
+
+    # Algorithm metadata
+    algorithm_version = models.CharField(max_length=50)
+    context = models.JSONField(default=dict)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    clicked_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
