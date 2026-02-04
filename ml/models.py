@@ -96,3 +96,27 @@ class ProfessionalScore(models.Model):
 
     class Meta:
         ordering = ['-overall_score']
+
+
+class CustomerPreference(models.Model):
+    """Learned customer preferences"""
+
+    customer = models.OneToOneField(
+        'customer.CustomerProfile',
+        on_delete=models.CASCADE,
+        related_name='ml_preferences'
+    )
+
+    # Learned preferences (stored as JSON for flexibility)
+    preferred_categories = models.JSONField(default=list)  # [{"id": 1, "weight": 0.8}, ...]
+    preferred_price_range = models.JSONField(default=dict)  # {"min": 100, "max": 500}
+    preferred_times = models.JSONField(default=list)  # ["morning", "afternoon"]
+    preferred_days = models.JSONField(default=list)  # ["saturday", "sunday"]
+
+    # Derived features
+    avg_booking_value = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True
+    )
+    booking_frequency_days = models.FloatField(null=True, blank=True)
+
+    last_computed_at = models.DateTimeField(auto_now=True)
