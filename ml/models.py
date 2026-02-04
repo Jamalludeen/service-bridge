@@ -45,3 +45,27 @@ class UserInteraction(models.Model):
             models.Index(fields=['content_type', 'object_id']),
             models.Index(fields=['created_at']),
         ]
+
+
+class ServiceSimilarity(models.Model):
+    """Pre-computed service similarity scores"""
+
+    service_a = models.ForeignKey(
+        'service.Service',
+        on_delete=models.CASCADE,
+        related_name='similarities_as_a'
+    )
+    service_b = models.ForeignKey(
+        'service.Service',
+        on_delete=models.CASCADE,
+        related_name='similarities_as_b'
+    )
+    similarity_score = models.FloatField()  # 0.0 to 1.0
+
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ['service_a', 'service_b']
+        indexes = [
+            models.Index(fields=['service_a', 'similarity_score']),
+        ]
