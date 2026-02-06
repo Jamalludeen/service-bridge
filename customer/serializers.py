@@ -4,7 +4,10 @@ from django.contrib.auth import get_user_model
 
 import re 
 
-from .models import CustomerProfile
+from .models import CustomerProfile, Cart, CartItem
+from service.models import Service
+from service.serializers import ProfessionalServiceSerializer
+
 
 User = get_user_model()
 
@@ -75,3 +78,49 @@ class CustomerUpdateProfileSerializer(serializers.ModelSerializer):
             user.save()
 
         return super().update(instance, validated_data)
+    
+class CartItemSerializer(serializers.ModelSerializer):
+    service_details = ProfessionalServiceSerializer(source='service', read_only=True)
+    estimated_price = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        read_only=True
+    )
+    is_service_available = serializers.BooleanField(read_only=True)
+    professional_name = serializers.CharField(
+        source='service.professional.get_full_name',
+        read_only=True
+    )
+
+    class Meta:
+        model = CartItem
+        fields = [
+            'id',
+            'service',
+            'service_details',
+            'quantity',
+            'estimated_price',
+            'is_service_available',
+            'professional_name',
+            'added_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'id',
+            'price_per_unit',
+            'added_at',
+            'updated_at'
+        ]
+    
+    def validate_service(self, value):
+        if not value.is_active:
+            raise serializers.ValidationError(
+                "This service is not longer available"
+            )
+
+        if not value.professional.is_active:
+            raise serializers.ValidationError(
+                "This professional is not longer available"
+            )
+        return value
+    
