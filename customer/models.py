@@ -2,8 +2,11 @@ from django.core.validators import FileExtensionValidator
 from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.db import models
+from uuid import uuid4
 
 from os.path import join
+
+from service.models import Service
 
 User = get_user_model()
 
@@ -46,3 +49,20 @@ class CustomerProfile(models.Model):
     def __str__(self):
         return str(self.user.username)
 
+class Cart(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid4)
+    customer = models.OneToOneField(CustomerProfile, on_delete=models.CASCADE, related_name='cart')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "customer_cart"
+        verbose_name = "Shopping Cart"
+        verbose_name_plural = "Shopping Carts"
+        indexes = [
+            models.Index(fields=['customer'])
+        ]
+
+
+class CartItem(models.Model):
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='cart_items')
