@@ -124,3 +124,14 @@ class CartItemSerializer(serializers.ModelSerializer):
             )
         return value
     
+    def validate_quantity(self, value):
+        if value < 1:
+            raise serializers.ValidationError(
+                "Quantity cannot be less than 1."
+            )
+        if value > 100:
+            raise serializers.ValidationError(
+                "Maximum quantity is 100 per item."
+            )
+        return value
+ 
