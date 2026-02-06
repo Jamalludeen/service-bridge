@@ -3,6 +3,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 from django.db import models
 from uuid import uuid4
+from django.core.validators import MinValueValidator
 
 from os.path import join
 
@@ -85,3 +86,17 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='cart_items')
+    quantity = models.PositiveIntegerField(
+        default=1, 
+        validators=[MinValueValidator(1)]
+    )
+
+    added_at = models.DateTimeField(
+        auto_now_add=True,
+        help_text="When item was added to cart"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        help_text="Last update time"
+    )
+    
