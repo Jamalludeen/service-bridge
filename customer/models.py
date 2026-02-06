@@ -54,6 +54,7 @@ class Cart(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4)
     customer = models.OneToOneField(CustomerProfile, on_delete=models.CASCADE, related_name='cart')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         db_table = "customer_cart"
@@ -77,6 +78,11 @@ class Cart(models.Model):
         for item in self.items.selected_related("service"):
             total += item.estimated_price
         return total
+    
+    @property
+    def is_empty(self):
+        """Check if cart has no items"""
+        return self.items.count() == 0
     
     def clear(self):
         self.items.all().delete()

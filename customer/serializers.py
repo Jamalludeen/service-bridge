@@ -164,3 +164,36 @@ class CartItemUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'quantity',
         ]
+
+
+class CartSerializer(serializers.ModelSerializer):
+    """
+    Complete cart serializer with all items
+    """
+    items = CartItemSerializer(many=True, read_only=True)
+    total_items = serializers.IntegerField(read_only=True)
+    total_price = serializers.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        read_only=True
+    )
+    is_empty = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Cart
+        fields = [
+            'id',
+            'customer',
+            'items',
+            'total_items',
+            'total_price',
+            'is_empty',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = [
+            'id',
+            'customer',
+            'created_at',
+            'updated_at',
+        ]
