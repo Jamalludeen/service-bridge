@@ -62,6 +62,25 @@ class Cart(models.Model):
             models.Index(fields=['customer'])
         ]
 
+    def __str__(self):
+        return f'Cart {self.id}'
+    
+    @property
+    def total_item(self):
+        return self.items.count()
+    
+    @property
+    def total_price(self):
+        from decimal import Decimal
+        total = Decimal("0.0")
+        for item in self.items.selected_related("service"):
+            total += item.estimated_price
+        return total
+    
+    def clear(self):
+        self.items.all().delete()
+        self.save()
+
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
