@@ -135,3 +135,32 @@ class CartItemSerializer(serializers.ModelSerializer):
             )
         return value
  
+
+class CartItemCreateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for adding items to cart
+    Simplified version for creation
+    """
+    class Meta:
+        model = CartItem
+        fields = [
+            'service',
+            'quantity',
+        ]
+
+    # def validate_service(self, value):
+    #     """Ensure service exists and is available"""
+    #     if not value.is_active:
+    #         raise serializers.ValidationError("Service is not available")
+    #     return value
+
+class CartItemUpdateSerializer(serializers.ModelSerializer):
+    """
+    Serializer for updating cart items
+    Service cannot be changed, only other fields
+    """
+    class Meta:
+        model = CartItem
+        fields = [
+            'quantity',
+        ]
