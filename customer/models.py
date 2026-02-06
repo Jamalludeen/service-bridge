@@ -99,4 +99,17 @@ class CartItem(models.Model):
         auto_now=True,
         help_text="Last update time"
     )
-    
+
+    class Meta:
+        db_table = 'customer_cart_item'
+        verbose_name = 'Cart Item'
+        verbose_name_plural = 'Cart Items'
+        ordering = ['-added_at']
+        unique_together = [['cart', 'service']]  # Prevent duplicate services
+        indexes = [
+            models.Index(fields=['cart', 'service']),
+            models.Index(fields=['added_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.service.title} x{self.quantity} in cart"
