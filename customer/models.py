@@ -113,3 +113,32 @@ class CartItem(models.Model):
 
     def __str__(self):
         return f"{self.service.title} x{self.quantity} in cart"
+
+    @property
+    def estimated_price(self):
+        from decimal import Decimal
+
+        current_price = self.service.price_per_unit
+
+        if self.service.pricing_type in ['PER_UNIT', 'FIXED']:
+            return current_price * Decimal(str(self.quantity))
+        elif self.service.pricing_type == 'HOURLY':
+            # For hourly, quantity represents hours
+
+            return current_price * Decimal(str(self.quantity))
+        elif self.service.pricing_type == 'DAILY':
+            # For daily, quantity represents days
+            return current_price * Decimal(str(self.quantity))
+        else:
+            return current_price
+        
+    @property
+    def is_service_available(self):
+        """Check if service is still active and available"""
+        return self.service.is_active and self.service.professional.is_active
+    
+    # def save(self, *args, **kwargs):
+    #     """Override save to cache price"""
+    #     if not self.price_per_unit:
+    #         self.price_per_unit = self.service.price_per_unit
+    #     super().save(*args, **kwargs)
