@@ -3,16 +3,51 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
+from rest_framework.viewsets import ModelViewSet
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 
-from .serializers import CustomerProfileSerializer, CustomerUpdateProfileSerializer, CustomerRetrieveProfileSerializer
+from .serializers import (
+    CustomerUpdateProfileSerializer, 
+    CustomerRetrieveProfileSerializer,
+    CartItemCreateSerializer,
+    CartItemUpdateSerializer,
+    CartItemSerializer,
+    CartSerializer,
+)
 from .permissions import IsCustomerOwner
-from .models import CustomerProfile
+from .models import CustomerProfile, Cart, CartItem
+from booking.models import Booking
 # from .throttles import CustomerProfileThrottle
 
 User = get_user_model()
+
+
+class CartViewSet(ModelViewSet):
+    permission_classes  = [IsAuthenticated]
+
+    def get_cart(self, customer):
+        """Get or create cart for customer"""
+        cart, created = Cart.objects.get_or_create(customer=customer)
+        return cart
+    
+    def list(self, request):
+        """
+        GET /api/cart/
+        Retrieve customer's cart with all items
+        """
+        try:
+            customer = request.user.customerprofile
+        except CustomerProfile.DoesNotExist:
+            return Response(
+                {"error": "Customer profile not found"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        cart = self.get_cart(customer)
+        serializer = CartSerializer(cart)
+        return Response(serializer.data)
 
 
 # this view handles requests send by customer to his/her profile
