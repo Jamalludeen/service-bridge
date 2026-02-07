@@ -30,6 +30,7 @@ class CartViewSet(ModelViewSet):
     permission_classes  = [IsAuthenticated]
     serializer_class = CartSerializer
     queryset = Cart.objects.all()
+    http_method_names = ['get', 'post', 'patch', 'delete']      
 
     def get_cart(self, customer):
         """Get or create cart for customer"""
@@ -140,6 +141,42 @@ class CartViewSet(ModelViewSet):
             {"message": f"{service_title} deleted from cart!"},
             status=status.HTTP_200_OK
         )
+    
+    def update(self, request, *args, **kwargs):
+        """
+        PATCH /api/cart/<id>/
+        Update cart items quantities
+        """
+        instance = self.get_object()
+        # Ensure the cart belongs to the user
+        if instance.customer.user != request.user:
+            return Response(
+                {"error": "You can only update your own cart"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        items_data = request.data.get('items', [])
+        if not items_data:
+            return Response(
+                {"error": "No items data provided"},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Update quantities for existing items
+        for item_data in items_data:
+            item_id = item_data.get('id')
+            quantity = item_data.get('quantity')
+            if item_id and quantity:
+                try:
+                    cart_item = CartItem.objects.get(id=item_id, cart=instance)
+                    cart_item.quantity = quantity
+                    cart_item.save()
+                except CartItem.DoesNotExist:
+                    pass  # Skip if item not found
+
+        # Return updated cart
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
 
 
 
