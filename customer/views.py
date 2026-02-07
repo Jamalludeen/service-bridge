@@ -105,6 +105,25 @@ class CartViewSet(ModelViewSet):
             )
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['patch'], url_path='items/(?P<item_id>[^/.]+)')
+    def update_item(self, request, item_id):
+        customer = request.user.customer
+
+        cart = self.get_cart(customer)
+        cart_item = self.get_object(CartItem, id=item_id, cart=cart)
+        
+        serializer = CartItemUpdateSerializer(cart_item, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            item_serializer = CartItemSerializer(cart_item)
+            return Response(
+                {
+                    "message": "Cart item updated successfully",
+                    "item": item_serializer.data
+                }
+            )
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 
