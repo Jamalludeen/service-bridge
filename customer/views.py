@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
+from rest_framework.decorators import action
 
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -48,6 +49,63 @@ class CartViewSet(ModelViewSet):
         cart = self.get_cart(customer)
         serializer = CartSerializer(cart)
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['POST'])
+    def add(self, request):
+        try:
+            customer = request.user.customer
+        except CustomerProfile.DoesNotExist:
+            return Response(
+                {"error": "Customer profile not found"},
+                status=status.HTTP_404_NOT_FOUND
+            ) 
+        
+        cart = self.get_cart(customer)
+
+        if cart.total_items >= 50:  # Maximum 50 items per cart
+            return Response(
+                {"error": "Cart is full. Maximum 50 items allowed."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = CartItemCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            service_id = serializer.validated_data['service'].id
+
+            # Check if service already in cart
+            existing_item = CartItem.objects.filter(
+                cart=cart,
+                service_id=service_id
+            ).first()
+
+            if existing_item:
+                # Update quantity instead of creating duplicate
+                existing_item.quantity += serializer.validated_data.get('quantity', 1)
+                existing_item.save()
+
+                item_serializer = CartItemSerializer(existing_item)
+                return Response(
+                    {
+                        "message": "Cart item quantity updated",
+                        "item": item_serializer.data
+                    },
+                    status=status.HTTP_200_OK
+                )
+
+            # Create new cart item
+            cart_item = serializer.save(cart=cart)
+            item_serializer = CartItemSerializer(cart_item)
+
+            return Response(
+                {
+                    "message": "Item added to cart successfully",
+                    "item": item_serializer.data
+                },
+                status=status.HTTP_201_CREATED
+            )
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 # this view handles requests send by customer to his/her profile
