@@ -19,7 +19,7 @@ def profile_picture_upload_path(instance, filename):
 
 
 class CustomerProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="customer_profile")
     profile_image = models.ImageField(
         upload_to=profile_picture_upload_path, null=True, blank=True,
         validators=[FileExtensionValidator(allowed_extensions=['png', 'jpg', 'jpeg'])]
