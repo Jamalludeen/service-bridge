@@ -29,6 +29,24 @@ class AdminServiceSerializer(serializers.ModelSerializer):
         fields = ["id", "professional", "category", "category_name", "title", "image", "description", "pricing_type", "price_per_unit", "is_active"]
 
 
+class CartServiceSerializer(serializers.ModelSerializer):
+    # professional = ProfessionalSerializer(read_only=True)
+    professional_name = serializers.CharField(source='professional.user.get_full_name')
+    category_name = serializers.CharField(source="category.name", read_only=True)
+
+    class Meta:
+        model = Service
+        fields = [
+            "id",
+            "professional_name",
+            "category_name",
+            "title",
+            "pricing_type",
+            "price_per_unit",
+        ]
+        read_only_fields = ["professional"]
+
+
 class ProfessionalServiceSerializer(serializers.ModelSerializer):
     professional = ProfessionalSerializer(read_only=True)
     category = serializers.PrimaryKeyRelatedField(queryset=ServiceCategory.objects.all())

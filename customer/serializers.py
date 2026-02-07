@@ -6,7 +6,7 @@ import re
 
 from .models import CustomerProfile, Cart, CartItem
 from service.models import Service
-from service.serializers import ProfessionalServiceSerializer
+from service.serializers import ProfessionalServiceSerializer, CartServiceSerializer
 
 
 User = get_user_model()
@@ -80,7 +80,7 @@ class CustomerUpdateProfileSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
     
 class CartItemSerializer(serializers.ModelSerializer):
-    service_details = ProfessionalServiceSerializer(source='service', read_only=True)
+    service_details = CartServiceSerializer(source='service', read_only=True)
     estimated_price = serializers.DecimalField(
         max_digits=10,
         decimal_places=2,
@@ -102,14 +102,10 @@ class CartItemSerializer(serializers.ModelSerializer):
             'estimated_price',
             'is_service_available',
             'professional_name',
-            'added_at',
-            'updated_at',
         ]
         read_only_fields = [
             'id',
             'price_per_unit',
-            'added_at',
-            'updated_at'
         ]
     
     def validate_service(self, value):
