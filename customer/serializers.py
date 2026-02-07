@@ -188,12 +188,12 @@ class CartSerializer(serializers.ModelSerializer):
             'total_items',
             'total_price',
             'is_empty',
-            'created_at',
-            'updated_at',
+            # 'created_at',
+            # 'updated_at',
         ]
         read_only_fields = [
             'id',
             'customer',
-            'created_at',
-            'updated_at',
+            # 'created_at',
+            # 'updated_at',
         ]
