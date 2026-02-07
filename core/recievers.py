@@ -6,7 +6,7 @@ from django.conf import settings
 from .email_templates import WELCOME_EMAIL_TEMPLATE
 from .signals import otp_verified, create_profile
 from professional.models import Professional
-from customer.models import CustomerProfile
+from customer.models import CustomerProfile, Cart
 
 @receiver(otp_verified)
 def send_success_email(sender, user, **kwargs):
@@ -35,6 +35,7 @@ def create_user_profile(sender, user, **kwargs):
         Professional.objects.create(user=user)
     
     if user.role == "customer":
-        CustomerProfile.objects.create(user=user)
+        customer = CustomerProfile.objects.create(user=user)
+        Cart.objects.create(customer=customer)
     
     

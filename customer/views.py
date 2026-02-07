@@ -26,6 +26,7 @@ User = get_user_model()
 
 
 class CartViewSet(ModelViewSet):
+    authentication_classes = [TokenAuthentication]
     permission_classes  = [IsAuthenticated]
     serializer_class = CartSerializer
     queryset = Cart.objects.all()
@@ -42,7 +43,6 @@ class CartViewSet(ModelViewSet):
         """
         try:
             customer = request.user.customer_profile
-            print("customer: ", customer)
         except CustomerProfile.DoesNotExist:
             return Response(
                 {"error": "Customer profile not found"},
