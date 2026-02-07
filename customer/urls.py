@@ -1,6 +1,11 @@
-from django.urls import path
+from django.urls import path ,include
+from rest_framework.routers import DefaultRouter
 from . import views
 
+router = DefaultRouter()
+router.register(r'cart', views.CartViewSet, basename='cart')
+
 urlpatterns = [
+    path('', include(router.urls)),
     path("profile/", views.CustomerProfileView.as_view(), name="profile"),
 ]
