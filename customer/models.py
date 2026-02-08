@@ -68,7 +68,7 @@ class Cart(models.Model):
         return f'Cart {self.id}'
     
     @property
-    def total_item(self):
+    def total_items(self):
         return self.items.count()
     
     @property

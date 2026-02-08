@@ -57,7 +57,7 @@ class CartViewSet(ModelViewSet):
     @action(detail=False, methods=['POST'])
     def add(self, request):
         try:
-            customer = request.user.customer
+            customer = request.user.customer_profile
         except CustomerProfile.DoesNotExist:
             return Response(
                 {"error": "Customer profile not found"},
@@ -110,12 +110,12 @@ class CartViewSet(ModelViewSet):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=False, methods=['patch'], url_path='items/(?P<item_id>[^/.]+)')
-    def update_item(self, request, item_id=None):
-        customer = request.user.customer
+    @action(detail=True, methods=['PATCH'], url_path='items/(?P<item_id>[^/.]+)')
+    def update_item(self, request, pk=None, item_id=None):
+        customer = request.user.customer_profile
 
         cart = self.get_cart(customer)
-        cart_item = self.get_object(CartItem, id=item_id, cart=cart)
+        cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
         
         serializer = CartItemUpdateSerializer(cart_item, data=request.data, partial=True)
         if serializer.is_valid():
@@ -131,7 +131,7 @@ class CartViewSet(ModelViewSet):
     
     @action(detail=False, methods=['delete'], url_path='items/(?P<item_id>[^/.]+)')
     def delete_item(self, request, item_id=None):
-        customer = request.user.customer
+        customer = request.user.customer_profile
         cart = self.get_cart(customer=customer)
         cart_item = get_object_or_404(CartItem, id=item_id, cart=cart)
 

@@ -8,7 +8,7 @@ class CustomerProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
-    list_display = ['id', 'customer', 'total_item', 'total_price', 'created_at']
+    list_display = ['id', 'customer', 'total_items', 'total_price', 'created_at']
     readonly_fields = ['id', 'created_at', 'updated_at']
 
 
