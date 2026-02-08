@@ -115,5 +115,21 @@ def test_retrieve_other_user_booking_foribidden(authenticated_client, booking):
     # TODO: this returns 200 OK(it should return 403 FORBIDDEN) because the bug exists in the associated to, other 
     # users should not have access bookings, fix it later.
 
-# @pytest.mark.django_db
-# def test_update_booking_as_customer()
+@pytest.mark.django_db
+def test_update_booking_as_customer(authenticated_client, user, booking):
+    """Test that a customer can update their own booking"""
+    # Make the booking belong to the authenticated user
+    booking.customer = user.customer_profile
+    booking.save()
+
+    url = reverse('booking-detail', args=[booking.id])
+    data = {
+        'address': 'Updated Address 123',
+        'city': 'Updated City'
+    }
+    response = authenticated_client.patch(url, data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+
+    booking.refresh_from_db()
+    assert booking.address == 'Updated Address 123'
+    assert booking.city == 'Updated City'

@@ -67,8 +67,10 @@ class BookingViewSet(ModelViewSet):
         if self.action == 'create':
             # only customers can create bookings
             return [IsAuthenticated()]
-        elif self.action is ['retrieve', 'list']:
-            return [IsAuthenticated(), IsBookingParticipant]
+        elif self.action in ['retrieve', 'list']:
+            return [IsAuthenticated(), IsBookingParticipant()]
+        elif self.action in ['update', 'partial_update']:
+            return [IsAuthenticated(), IsBookingCustomer()]
         return super().get_permissions()
 
 
