@@ -84,7 +84,9 @@ def test_verify_otp_with_invalid_otp(api_client):
         'otp': f'{user.otp}0' # an extra 0 is concatenated with the original OTP to enforce its wrong case test
     }
     response = api_client.post(url, data=data, format='json')
-    assert response.status_code == status.HTTP_200_OK
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'error' in response.data
+    assert response.data['error'] == 'Invalid OTP'
 
 @pytest.mark.django_db
 def test_request_new_otp(api_client):
