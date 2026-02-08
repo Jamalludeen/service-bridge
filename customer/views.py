@@ -142,44 +142,7 @@ class CartViewSet(ModelViewSet):
             status=status.HTTP_200_OK
         )
     
-    def update(self, request, *args, **kwargs):
-        """
-        PATCH /api/cart/<id>/
-        Update cart items quantities
-        """
-        instance = self.get_object()
-        # Ensure the cart belongs to the user
-        if instance.customer.user != request.user:
-            return Response(
-                {"error": "You can only update your own cart"},
-                status=status.HTTP_403_FORBIDDEN
-            )
-
-        items_data = request.data.get('items', [])
-        if not items_data:
-            return Response(
-                {"error": "No items data provided"},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        # Update quantities for existing items
-        for item_data in items_data:
-            item_id = item_data.get('id')
-            quantity = item_data.get('quantity')
-            if item_id and quantity:
-                try:
-                    cart_item = CartItem.objects.get(id=item_id, cart=instance)
-                    cart_item.quantity = quantity
-                    cart_item.save()
-                except CartItem.DoesNotExist:
-                    pass  # Skip if item not found
-
-        # Return updated cart
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-
-
+    
 # this view handles requests send by customer to his/her profile
 class CustomerProfileView(APIView):
     authentication_classes = [TokenAuthentication]
@@ -192,31 +155,6 @@ class CustomerProfileView(APIView):
         profile = get_object_or_404(CustomerProfile, user=request.user)
         serializer = CustomerRetrieveProfileSerializer(profile)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    # if a post request is send by users we handle profile creation for them
-    # def post(self, request):
-    #     if request.user.role  == "admin" or request.user.role == "professional":
-    #         return Response(
-    #             {"message": "Your account cannot be switched to a customer"},
-    #             status=status.HTTP_400_BAD_REQUEST
-    #         )
-        
-    #     serializer = CustomerProfileSerializer(
-    #         data=request.data,
-    #         context={'request': request}
-    #     )
-
-    #     if serializer.is_valid():
-    #         profile = serializer.save()
-    #         return Response(
-    #             {
-    #                 "message": "Profile successfully created!",
-    #                 "profile": CustomerProfileSerializer(profile).data
-    #             },
-    #             status=status.HTTP_201_CREATED
-    #         )
-
-    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def patch(self, request, *args, **kwargs):
         # set the premission, so only the creator of profile can update
