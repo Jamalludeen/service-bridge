@@ -2,7 +2,7 @@
 
 ## Get Current Customer Profile
 
-**GET** `/api/profile/`
+**GET** `/customer/profile/`
 
 Returns the authenticated customer's profile.
 
@@ -38,7 +38,7 @@ Returns the authenticated customer's profile.
 
 ## Update Current Customer Profile
 
-**PATCH** `/api/profile/`
+**PATCH** `/customer/profile/`
 
 Updates any subset of profile fields. Only the profile owner may update.
 
@@ -90,7 +90,7 @@ Updates any subset of profile fields. Only the profile owner may update.
 
 ## Delete Current Customer Profile
 
-**DELETE** `/api/profile/`
+**DELETE** `/customer/profile/`
 
 Deletes the authenticated customer's profile. Only the profile owner may delete.
 
