@@ -168,11 +168,12 @@ class CartSerializer(serializers.ModelSerializer):
     """
     items = CartItemSerializer(many=True, read_only=True)
     total_items = serializers.IntegerField(read_only=True)
-    total_price = serializers.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        read_only=True
-    )
+    # total_price = serializers.DecimalField(
+    #     max_digits=10,
+    #     decimal_places=2,
+    #     read_only=True
+    # )
+    total_price = serializers.SerializerMethodField()
     is_empty = serializers.BooleanField(read_only=True)
 
     class Meta:
@@ -193,3 +194,6 @@ class CartSerializer(serializers.ModelSerializer):
             # 'created_at',
             # 'updated_at',
         ]
+    
+    def get_total_price(self, obj):
+        return sum(item.quantity * item.service.price_per_unit for item in obj.items.all())
