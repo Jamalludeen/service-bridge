@@ -2,7 +2,7 @@
 
 ## Get Current Customer Cart
 
-**GET** `/api/cart/`
+**GET** `/customer/cart/`
 
 Creates a cart for the customer if none exists, then returns cart with items.
 
@@ -40,7 +40,7 @@ Creates a cart for the customer if none exists, then returns cart with items.
 
 ## Add Item to Cart
 
-**POST** `/api/cart/add/`
+**POST** `/customer/cart/add/`
 
 Adds a service to the cart. If the service already exists in the cart, its quantity is increased.
 
@@ -97,7 +97,7 @@ Adds a service to the cart. If the service already exists in the cart, its quant
 
 ## Update Cart Item
 
-**PATCH** `/api/cart/{cart_id}/items/{item_id}/`
+**PATCH** `/customer/cart/{cart_id}/items/{item_id}/`
 
 Updates quantity or other mutable fields for a cart item.
 
@@ -129,7 +129,7 @@ Updates quantity or other mutable fields for a cart item.
 
 ## Delete Cart Item
 
-**DELETE** `/api/cart/items/{item_id}/`
+**DELETE** `/customer/cart/items/{item_id}/`
 
 Removes a cart item from the current customer's cart.
 
