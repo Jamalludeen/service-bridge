@@ -39,3 +39,25 @@ def test_profile_patch_update_city_and_district(authenticated_client, customer_p
     customer_profile.refresh_from_db()
     assert customer_profile.city == 'Herat'
     assert customer_profile.district == '5th'
+
+
+@pytest.mark.django_db
+def test_profile_patch_update_nested_user_data(authenticated_client, customer_profile):
+    """Customer can update nested user fields (first_name, phone, email)."""
+    url = reverse('profile')
+    data = {
+        'user': {
+            'first_name': 'Ahmad',
+            'last_name': 'Karimi',
+            'email': 'ahmad.karimi@gmail.com',
+            'phone': '+93700000099',
+        }
+    }
+    response = authenticated_client.patch(url, data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+
+    customer_profile.user.refresh_from_db()
+    assert customer_profile.user.first_name == 'Ahmad'
+    assert customer_profile.user.last_name == 'Karimi'
+    assert customer_profile.user.email == 'ahmad.karimi@gmail.com'
+    assert customer_profile.user.phone == '+93700000099'
