@@ -81,3 +81,12 @@ def test_profile_patch_invalid_phone(authenticated_client, customer_profile):
     response = authenticated_client.patch(url, data, format='json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'phone' in response.data
+
+
+@pytest.mark.django_db
+def test_profile_delete_success(authenticated_client, customer_profile):
+    """Customer can delete their own profile."""
+    url = reverse('profile')
+    response = authenticated_client.delete(url)
+    assert response.status_code == status.HTTP_204_NO_CONTENT
+    assert not CustomerProfile.objects.filter(id=customer_profile.id).exists()
