@@ -61,3 +61,23 @@ def test_profile_patch_update_nested_user_data(authenticated_client, customer_pr
     assert customer_profile.user.last_name == 'Karimi'
     assert customer_profile.user.email == 'ahmad.karimi@gmail.com'
     assert customer_profile.user.phone == '+93700000099'
+
+
+@pytest.mark.django_db
+def test_profile_patch_invalid_email(authenticated_client, customer_profile):
+    """Non-Gmail email should be rejected."""
+    url = reverse('profile')
+    data = {'user': {'email': 'bad@yahoo.com'}}
+    response = authenticated_client.patch(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'email' in response.data
+
+
+@pytest.mark.django_db
+def test_profile_patch_invalid_phone(authenticated_client, customer_profile):
+    """Non-Afghan phone number should be rejected."""
+    url = reverse('profile')
+    data = {'user': {'phone': '+1234567890'}}
+    response = authenticated_client.patch(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'phone' in response.data
