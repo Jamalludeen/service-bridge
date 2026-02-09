@@ -177,3 +177,16 @@ def test_cart_update_item_invalid_quantity(authenticated_client, customer_profil
     data = {'quantity': 0}
     response = authenticated_client.patch(url, data, format='json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
+
+
+@pytest.mark.django_db
+def test_cart_delete_item(authenticated_client, customer_profile, service):
+    """Customer can delete a cart item."""
+    cart = Cart.objects.create(customer=customer_profile)
+    item = CartItem.objects.create(cart=cart, service=service, quantity=2)
+
+    url = reverse('cart-delete-item', kwargs={'item_id': item.pk})
+    response = authenticated_client.delete(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert service.title in response.data['message']
+    assert not CartItem.objects.filter(id=item.id).exists()
