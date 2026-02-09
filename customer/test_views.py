@@ -1,6 +1,7 @@
 import pytest
 from rest_framework import status
 from django.urls import reverse
+from decimal import Decimal
 from customer.models import CustomerProfile, Cart, CartItem
 
 
@@ -190,3 +191,30 @@ def test_cart_delete_item(authenticated_client, customer_profile, service):
     assert response.status_code == status.HTTP_200_OK
     assert service.title in response.data['message']
     assert not CartItem.objects.filter(id=item.id).exists()
+
+
+@pytest.mark.django_db
+def test_cart_add_item_max_limit(authenticated_client, customer_profile, service):
+    """Cart should reject items when it already has 50 distinct items."""
+    from service.models import Service
+
+    cart = Cart.objects.create(customer=customer_profile)
+
+    # Fill cart with 50 distinct services
+    for i in range(50):
+        svc = Service.objects.create(
+            professional=service.professional,
+            category=service.category,
+            title=f'Service {i}',
+            description=f'Desc {i}',
+            pricing_type='FIXED',
+            price_per_unit=Decimal('10.00'),
+            is_active=True,
+        )
+        CartItem.objects.create(cart=cart, service=svc, quantity=1)
+
+    url = reverse('cart-add')
+    data = {'service': service.id, 'quantity': 1}
+    response = authenticated_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
+    assert 'Cart is full' in response.data['error']
