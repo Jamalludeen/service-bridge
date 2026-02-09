@@ -218,3 +218,42 @@ def test_cart_add_item_max_limit(authenticated_client, customer_profile, service
     response = authenticated_client.post(url, data, format='json')
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert 'Cart is full' in response.data['error']
+
+
+@pytest.mark.django_db
+def test_profile_get_no_profile_returns_404(api_client):
+    """User without a customer profile should get 404."""
+    from core.models import User
+    user = User.objects.create_user(
+        username='noprofileuser',
+        email='noprofile@gmail.com',
+        password='TestPass123',
+        phone='+93700000055',
+        role='customer',
+        is_verified=True,
+    )
+    api_client.force_authenticate(user=user)
+    url = reverse('profile')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
+
+
+@pytest.mark.django_db
+def test_cart_list_with_items(authenticated_client, customer_profile, service):
+    """Cart list should reflect added items."""
+    cart = Cart.objects.create(customer=customer_profile)
+    CartItem.objects.create(cart=cart, service=service, quantity=3)
+
+    url = reverse('cart-list')
+    response = authenticated_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['total_items'] == 1
+    assert response.data['is_empty'] is False
+
+
+@pytest.mark.django_db
+def test_professional_cannot_access_customer_profile(professional_client):
+    """Professional users should get 404 on customer profile endpoint."""
+    url = reverse('profile')
+    response = professional_client.get(url)
+    assert response.status_code == status.HTTP_404_NOT_FOUND
