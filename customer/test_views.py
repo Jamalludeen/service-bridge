@@ -112,3 +112,14 @@ def test_cart_list_success(authenticated_client, customer_profile):
     assert response.status_code == status.HTTP_200_OK
     assert response.data['is_empty'] is True
     assert response.data['total_items'] == 0
+
+
+@pytest.mark.django_db
+def test_cart_add_item(authenticated_client, customer_profile, service):
+    """Customer can add a service to their cart."""
+    url = reverse('cart-add')
+    data = {'service': service.id, 'quantity': 2}
+    response = authenticated_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_201_CREATED
+    assert response.data['message'] == 'Item added to cart successfully'
+    assert response.data['item']['quantity'] == 2
