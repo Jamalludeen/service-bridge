@@ -123,3 +123,19 @@ def test_cart_add_item(authenticated_client, customer_profile, service):
     assert response.status_code == status.HTTP_201_CREATED
     assert response.data['message'] == 'Item added to cart successfully'
     assert response.data['item']['quantity'] == 2
+
+
+@pytest.mark.django_db
+def test_cart_add_duplicate_item_increments_quantity(authenticated_client, customer_profile, service):
+    """Adding the same service again should increment quantity, not duplicate."""
+    url = reverse('cart-add')
+    data = {'service': service.id, 'quantity': 1}
+
+    # First add
+    authenticated_client.post(url, data, format='json')
+
+    # Second add
+    response = authenticated_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['message'] == 'Cart item quantity updated'
+    assert response.data['item']['quantity'] == 2
