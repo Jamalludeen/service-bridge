@@ -90,3 +90,15 @@ def test_profile_delete_success(authenticated_client, customer_profile):
     response = authenticated_client.delete(url)
     assert response.status_code == status.HTTP_204_NO_CONTENT
     assert not CustomerProfile.objects.filter(id=customer_profile.id).exists()
+
+
+# ──────────────────────────────────────────────
+# Cart View Tests
+# ──────────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_cart_list_unauthenticated(api_client):
+    """Unauthenticated users should get 401 on cart endpoint."""
+    url = reverse('cart-list')
+    response = api_client.get(url)
+    assert response.status_code == status.HTTP_401_UNAUTHORIZED
