@@ -139,3 +139,12 @@ def test_cart_add_duplicate_item_increments_quantity(authenticated_client, custo
     assert response.status_code == status.HTTP_200_OK
     assert response.data['message'] == 'Cart item quantity updated'
     assert response.data['item']['quantity'] == 2
+
+
+@pytest.mark.django_db
+def test_cart_add_item_invalid_service(authenticated_client, customer_profile):
+    """Adding a non-existent service should fail with 400."""
+    url = reverse('cart-add')
+    data = {'service': 99999, 'quantity': 1}
+    response = authenticated_client.post(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
