@@ -102,3 +102,13 @@ def test_cart_list_unauthenticated(api_client):
     url = reverse('cart-list')
     response = api_client.get(url)
     assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+@pytest.mark.django_db
+def test_cart_list_success(authenticated_client, customer_profile):
+    """Authenticated customer gets their cart (auto-created if absent)."""
+    url = reverse('cart-list')
+    response = authenticated_client.get(url)
+    assert response.status_code == status.HTTP_200_OK
+    assert response.data['is_empty'] is True
+    assert response.data['total_items'] == 0
