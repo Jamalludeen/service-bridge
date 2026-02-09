@@ -165,3 +165,15 @@ def test_cart_update_item_quantity(authenticated_client, customer_profile, servi
 
     item.refresh_from_db()
     assert item.quantity == 5
+
+
+@pytest.mark.django_db
+def test_cart_update_item_invalid_quantity(authenticated_client, customer_profile, service):
+    """Updating a cart item with quantity 0 should fail."""
+    cart = Cart.objects.create(customer=customer_profile)
+    item = CartItem.objects.create(cart=cart, service=service, quantity=1)
+
+    url = reverse('cart-update-item', kwargs={'pk': cart.pk, 'item_id': item.pk})
+    data = {'quantity': 0}
+    response = authenticated_client.patch(url, data, format='json')
+    assert response.status_code == status.HTTP_400_BAD_REQUEST
