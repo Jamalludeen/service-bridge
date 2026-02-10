@@ -125,3 +125,13 @@ def test_cart_factory_customer_relationship():
     assert isinstance(cart.customer, CustomerProfile)
     assert cart.customer.user.role == 'customer'
 
+
+@pytest.mark.django_db
+def test_cart_is_empty_property():
+    """Test that a new cart is empty, and becomes non-empty after adding an item."""
+    cart = factories.CartFactory()
+    assert cart.is_empty is True
+
+    factories.CartItemFactory(cart=cart)
+    assert cart.is_empty is False
+
