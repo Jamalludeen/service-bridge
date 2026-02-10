@@ -261,3 +261,31 @@ def test_cart_item_is_service_unavailable_when_professional_inactive():
 
     assert item.is_service_available is False
 
+
+@pytest.mark.django_db
+def test_cart_item_batch_creation():
+    """Test creating multiple CartItems in a single cart via factory batch."""
+    from customer.models import CartItem
+
+    cart = factories.CartFactory()
+    items = factories.CartItemFactory.create_batch(5, cart=cart)
+
+    assert len(items) == 5
+    assert cart.total_items == 5
+    assert CartItem.objects.filter(cart=cart).count() == 5
+
+
+@pytest.mark.django_db
+def test_cart_item_unique_together_constraint():
+    """Test that a cart cannot have duplicate services (unique_together)."""
+    from django.db import IntegrityError
+    from service.factories import ServiceFactory
+
+    cart = factories.CartFactory()
+    service = ServiceFactory()
+
+    factories.CartItemFactory(cart=cart, service=service)
+
+    with pytest.raises(IntegrityError):
+        factories.CartItemFactory(cart=cart, service=service)
+
