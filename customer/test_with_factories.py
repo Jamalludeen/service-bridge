@@ -98,3 +98,20 @@ def test_customer_factory_preferred_language_choices():
         customer = factories.CustomerFactory(preferred_language=lang_code)
         assert customer.preferred_language == lang_code
 
+
+# ──────────────────────────────────────────────
+# Cart Factory Tests
+# ──────────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_create_cart_with_factory():
+    """Test that CartFactory creates a valid Cart instance."""
+    from customer.models import Cart
+
+    cart = factories.CartFactory()
+
+    assert cart.id is not None
+    assert cart.pk is not None
+    assert isinstance(cart, Cart)
+    assert Cart.objects.filter(pk=cart.pk).exists()
+
