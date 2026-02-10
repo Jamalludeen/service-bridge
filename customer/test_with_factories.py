@@ -187,3 +187,12 @@ def test_create_cart_item_with_factory():
     assert item.service is not None
     assert item.quantity >= 2
 
+
+@pytest.mark.django_db
+def test_cart_item_str_representation():
+    """Test CartItem __str__ returns formatted string."""
+    item = factories.CartItemFactory(quantity=3)
+
+    expected = f"{item.service.title} x3 in cart"
+    assert str(item) == expected
+
