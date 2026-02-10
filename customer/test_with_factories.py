@@ -90,3 +90,11 @@ def test_customer_factory_location_fields():
     assert -90 <= customer.latitude <= 90
     assert -180 <= customer.longitude <= 180
 
+
+@pytest.mark.django_db
+def test_customer_factory_preferred_language_choices():
+    """Test that preferred_language can be set to each valid choice."""
+    for lang_code in ['en', 'ps', 'fa']:
+        customer = factories.CustomerFactory(preferred_language=lang_code)
+        assert customer.preferred_language == lang_code
+
