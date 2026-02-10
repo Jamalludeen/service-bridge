@@ -43,5 +43,5 @@ class CartItemFactory(DjangoModelFactory):
     
     cart = factory.SubFactory(CartFactory)
     service = factory.SubFactory(ServiceFactory)
-    
+    quantity = factory.LazyAttribute(lambda _: fake.random_int(min=2, max=50))
     
