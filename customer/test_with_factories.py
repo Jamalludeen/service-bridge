@@ -224,3 +224,40 @@ def test_cart_item_estimated_price_by_pricing_type(pricing_type, price, quantity
 
     assert item.estimated_price == expected
 
+
+@pytest.mark.django_db
+def test_cart_item_is_service_available():
+    """Test is_service_available returns True when service and professional are active."""
+    from service.factories import ServiceFactory
+    from professional.factories import ProfessionalFactory
+
+    professional = ProfessionalFactory(is_active=True)
+    service = ServiceFactory(professional=professional, is_active=True)
+    item = factories.CartItemFactory(service=service)
+
+    assert item.is_service_available is True
+
+
+@pytest.mark.django_db
+def test_cart_item_is_service_unavailable_when_service_inactive():
+    """Test is_service_available returns False when the service is inactive."""
+    from service.factories import ServiceFactory
+
+    service = ServiceFactory(is_active=False)
+    item = factories.CartItemFactory(service=service)
+
+    assert item.is_service_available is False
+
+
+@pytest.mark.django_db
+def test_cart_item_is_service_unavailable_when_professional_inactive():
+    """Test is_service_available returns False when professional is inactive."""
+    from service.factories import ServiceFactory
+    from professional.factories import ProfessionalFactory
+
+    professional = ProfessionalFactory(is_active=False)
+    service = ServiceFactory(professional=professional, is_active=True)
+    item = factories.CartItemFactory(service=service)
+
+    assert item.is_service_available is False
+
