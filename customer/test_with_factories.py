@@ -38,3 +38,23 @@ def test_customer_factory_default_values():
     assert customer.total_bookings == 0
     assert customer.avg_rating_given == 0.0
 
+
+@pytest.mark.django_db
+def test_customer_factory_custom_overrides():
+    """Test that CustomerFactory accepts custom field overrides."""
+    customer = factories.CustomerFactory(
+        city='Kabul',
+        district='District 10',
+        detailed_address='123 Main Street',
+        preferred_language='en',
+        total_bookings=15,
+        avg_rating_given=4.5,
+    )
+
+    assert customer.city == 'Kabul'
+    assert customer.district == 'District 10'
+    assert customer.detailed_address == '123 Main Street'
+    assert customer.preferred_language == 'en'
+    assert customer.total_bookings == 15
+    assert customer.avg_rating_given == 4.5
+
