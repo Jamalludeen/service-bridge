@@ -3,8 +3,9 @@ from factory.django import DjangoModelFactory
 from faker import Faker
 from decimal import Decimal
 
-from .models import CustomerProfile
+from .models import CustomerProfile, Cart, CartItem
 from core.factories import UserFactory
+from service.factories import ServiceFactory
 
 
 fake = Faker()
@@ -29,3 +30,9 @@ class CustomerFactory(DjangoModelFactory):
     preferred_language = 'fa'
     total_bookings = 0
     avg_rating_given = 0.0
+
+
+class CartFactory(DjangoModelFactory):
+    class Meta:
+        model = Cart
+    service = factory.SubFactory(ServiceFactory)
