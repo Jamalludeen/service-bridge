@@ -135,3 +135,16 @@ def test_cart_is_empty_property():
     factories.CartItemFactory(cart=cart)
     assert cart.is_empty is False
 
+
+@pytest.mark.django_db
+def test_cart_total_items_property():
+    """Test that total_items reflects the number of distinct CartItems."""
+    cart = factories.CartFactory()
+    assert cart.total_items == 0
+
+    factories.CartItemFactory(cart=cart)
+    factories.CartItemFactory(cart=cart)
+    factories.CartItemFactory(cart=cart)
+
+    assert cart.total_items == 3
+
