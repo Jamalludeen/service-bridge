@@ -58,3 +58,14 @@ def test_customer_factory_custom_overrides():
     assert customer.total_bookings == 15
     assert customer.avg_rating_given == 4.5
 
+
+@pytest.mark.django_db
+def test_customer_factory_linked_user_role():
+    """Test that the linked user has role 'customer' and is verified."""
+    customer = factories.CustomerFactory()
+
+    assert customer.user is not None
+    assert customer.user.role == 'customer'
+    assert customer.user.is_verified is True
+    assert customer.user.email.endswith('@gmail.com')
+
