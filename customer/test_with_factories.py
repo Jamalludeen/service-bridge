@@ -77,3 +77,16 @@ def test_customer_factory_str_representation():
 
     assert str(customer) == customer.user.username
 
+
+@pytest.mark.django_db
+def test_customer_factory_location_fields():
+    """Test that factory populates latitude and longitude with valid decimals."""
+    customer = factories.CustomerFactory()
+
+    assert customer.latitude is not None
+    assert customer.longitude is not None
+    assert isinstance(customer.latitude, Decimal)
+    assert isinstance(customer.longitude, Decimal)
+    assert -90 <= customer.latitude <= 90
+    assert -180 <= customer.longitude <= 180
+
