@@ -168,3 +168,22 @@ def test_cart_str_representation():
 
     assert str(cart) == f'Cart {cart.id}'
 
+
+# ──────────────────────────────────────────────
+# CartItem Factory Tests
+# ──────────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_create_cart_item_with_factory():
+    """Test that CartItemFactory creates a valid CartItem instance."""
+    from customer.models import CartItem
+
+    item = factories.CartItemFactory()
+
+    assert item.id is not None
+    assert item.pk is not None
+    assert isinstance(item, CartItem)
+    assert item.cart is not None
+    assert item.service is not None
+    assert item.quantity >= 2
+
