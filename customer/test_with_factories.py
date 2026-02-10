@@ -148,3 +148,15 @@ def test_cart_total_items_property():
 
     assert cart.total_items == 3
 
+
+@pytest.mark.django_db
+def test_cart_clear_method():
+    """Test that clear() removes all items from the cart."""
+    cart = factories.CartFactory()
+    factories.CartItemFactory.create_batch(3, cart=cart)
+    assert cart.total_items == 3
+
+    cart.clear()
+    assert cart.total_items == 0
+    assert cart.is_empty is True
+
