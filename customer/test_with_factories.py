@@ -69,3 +69,11 @@ def test_customer_factory_linked_user_role():
     assert customer.user.is_verified is True
     assert customer.user.email.endswith('@gmail.com')
 
+
+@pytest.mark.django_db
+def test_customer_factory_str_representation():
+    """Test CustomerProfile __str__ returns username."""
+    customer = factories.CustomerFactory()
+
+    assert str(customer) == customer.user.username
+
