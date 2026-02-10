@@ -115,3 +115,13 @@ def test_create_cart_with_factory():
     assert isinstance(cart, Cart)
     assert Cart.objects.filter(pk=cart.pk).exists()
 
+
+@pytest.mark.django_db
+def test_cart_factory_customer_relationship():
+    """Test that CartFactory creates a linked CustomerProfile."""
+    cart = factories.CartFactory()
+
+    assert cart.customer is not None
+    assert isinstance(cart.customer, CustomerProfile)
+    assert cart.customer.user.role == 'customer'
+
