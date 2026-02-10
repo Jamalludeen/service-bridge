@@ -196,3 +196,14 @@ def test_cart_item_str_representation():
     expected = f"{item.service.title} x3 in cart"
     assert str(item) == expected
 
+
+@pytest.mark.django_db
+def test_cart_item_estimated_price():
+    """Test that estimated_price correctly multiplies price_per_unit by quantity."""
+    from service.factories import ServiceFactory
+
+    service = ServiceFactory(pricing_type='FIXED', price_per_unit=Decimal('100.00'))
+    item = factories.CartItemFactory(service=service, quantity=5)
+
+    assert item.estimated_price == Decimal('500.00')
+
