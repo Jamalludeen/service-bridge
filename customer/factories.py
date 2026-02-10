@@ -35,4 +35,13 @@ class CustomerFactory(DjangoModelFactory):
 class CartFactory(DjangoModelFactory):
     class Meta:
         model = Cart
+    customer = factory.SubFactory(CustomerFactory)
+
+class CartItemFactory(DjangoModelFactory):
+    class Meta:
+        model = CartItem
+    
+    cart = factory.SubFactory(CartFactory)
     service = factory.SubFactory(ServiceFactory)
+    
+    
