@@ -160,3 +160,11 @@ def test_cart_clear_method():
     assert cart.total_items == 0
     assert cart.is_empty is True
 
+
+@pytest.mark.django_db
+def test_cart_str_representation():
+    """Test Cart __str__ returns 'Cart <uuid>'."""
+    cart = factories.CartFactory()
+
+    assert str(cart) == f'Cart {cart.id}'
+
