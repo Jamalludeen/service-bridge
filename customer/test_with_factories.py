@@ -28,3 +28,13 @@ def test_create_customer_batch():
         assert customer.id is not None
         assert customer.user is not None
 
+
+@pytest.mark.django_db
+def test_customer_factory_default_values():
+    """Test that CustomerFactory sets correct default values."""
+    customer = factories.CustomerFactory()
+
+    assert customer.preferred_language == 'fa'
+    assert customer.total_bookings == 0
+    assert customer.avg_rating_given == 0.0
+
