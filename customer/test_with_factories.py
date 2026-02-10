@@ -207,3 +207,20 @@ def test_cart_item_estimated_price():
 
     assert item.estimated_price == Decimal('500.00')
 
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("pricing_type,price,quantity,expected", [
+    ('HOURLY', Decimal('50.00'), 4, Decimal('200.00')),
+    ('DAILY', Decimal('200.00'), 3, Decimal('600.00')),
+    ('PER_UNIT', Decimal('25.00'), 10, Decimal('250.00')),
+    ('FIXED', Decimal('1000.00'), 1, Decimal('1000.00')),
+])
+def test_cart_item_estimated_price_by_pricing_type(pricing_type, price, quantity, expected):
+    """Test estimated_price across all pricing types."""
+    from service.factories import ServiceFactory
+
+    service = ServiceFactory(pricing_type=pricing_type, price_per_unit=price)
+    item = factories.CartItemFactory(service=service, quantity=quantity)
+
+    assert item.estimated_price == expected
+
