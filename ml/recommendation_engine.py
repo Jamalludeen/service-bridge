@@ -221,3 +221,33 @@ class RecommendationEngine:
                     )
 
         return scores
+    
+    def _popularity_based_services(self):
+        """
+        Recommend trending/popular services based on recent bookings.
+        """
+        from django.utils import timezone
+        from datetime import timedelta
+
+        scores = {}
+
+        # Get services with most bookings in last 30 days
+        thirty_days_ago = timezone.now() - timedelta(days=30)
+
+        popular = Booking.objects.filter(
+            created_at__gte=thirty_days_ago,
+            status__in=['COMPLETED', 'ACCEPTED', 'IN_PROGRESS']
+        ).values('service_id').annotate(
+            booking_count=Count('id'),
+            avg_rating=Avg('professional__avg_rating')
+        ).order_by('-booking_count')[:50]
+
+        max_count = popular[0]['booking_count'] if popular else 1
+
+        for item in popular:
+            # Combine booking count and rating
+            count_score = item['booking_count'] / max_count
+            rating_score = (item['avg_rating'] or 3.0) / 5.0
+            scores[item['service_id']] = (count_score * 0.7) + (rating_score * 0.3)
+
+        return scores
