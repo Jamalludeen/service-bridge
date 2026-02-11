@@ -287,3 +287,46 @@ class RecommendationEngine:
         # Fetch and preserve order
         professional_dict = {p.id: p for p in queryset.filter(id__in=professional_ids)}
         return [professional_dict[pid] for pid in professional_ids if pid in professional_dict]
+    
+    def _calculate_professional_score(self, professional):
+        """
+        Calculate a composite score for a professional.
+        """
+        score = 0.0
+
+        # Rating component (30%)
+        if professional.avg_rating:
+            score += (professional.avg_rating / 5.0) * 0.3
+
+        # Experience component (15%)
+        exp_years = professional.years_of_experience or 0
+        exp_score = min(exp_years / 10, 1.0)  # Cap at 10 years
+        score += exp_score * 0.15
+
+        # Review count component (15%)
+        reviews = professional.total_reviews or 0
+        review_score = min(reviews / 50, 1.0)  # Cap at 50 reviews
+        score += review_score * 0.15
+
+        # Completion rate component (25%)
+        total_bookings = Booking.objects.filter(professional=professional).count()
+        completed_bookings = Booking.objects.filter(
+            professional=professional,
+            status='COMPLETED'
+        ).count()
+
+        if total_bookings > 0:
+            completion_rate = completed_bookings / total_bookings
+            score += completion_rate * 0.25
+
+        # Location proximity component (15%)
+        if self.customer.latitude and professional.latitude:
+            distance = self._haversine_distance(
+                float(self.customer.latitude), float(self.customer.longitude),
+                float(professional.latitude), float(professional.longitude)
+            )
+            if distance <= 50:
+                distance_score = 1 - (distance / 50)
+                score += distance_score * 0.15
+
+        return score
