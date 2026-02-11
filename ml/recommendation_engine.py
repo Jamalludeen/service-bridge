@@ -330,3 +330,56 @@ class RecommendationEngine:
                 score += distance_score * 0.15
 
         return score
+    
+    # "SIMILAR SERVICES" RECOMMENDATIONS
+
+    def get_similar_services(self, service_id, limit=5):
+        """
+        Get services similar to a given service.
+        Useful for "You may also like" sections.
+        """
+        try:
+            service = Service.objects.get(id=service_id)
+        except Service.DoesNotExist:
+            return []
+
+        scores = {}
+
+        # Same category services
+        same_category = Service.objects.filter(
+            category=service.category,
+            is_active=True,
+            professional__is_active=True,
+            professional__verification_status='VERIFIED'
+        ).exclude(id=service_id)
+
+        for similar in same_category:
+            score = 0.5  # Base score for same category
+
+            # Price similarity
+            price_diff = abs(similar.price_per_unit - service.price_per_unit)
+            max_price = max(similar.price_per_unit, service.price_per_unit)
+            if max_price > 0:
+                price_similarity = 1 - (float(price_diff) / float(max_price))
+                score += price_similarity * 0.3
+
+            # Professional rating
+            if similar.professional.avg_rating:
+                score += (similar.professional.avg_rating / 5.0) * 0.2
+
+            scores[similar.id] = score
+
+        # Sort and return
+        sorted_services = sorted(
+            scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:limit]
+
+        service_ids = [s[0] for s in sorted_services]
+        services = Service.objects.filter(id__in=service_ids).select_related(
+            'professional__user', 'category'
+        )
+
+        service_dict = {s.id: s for s in services}
+        return [service_dict[sid] for sid in service_ids if sid in service_dict]
