@@ -383,3 +383,55 @@ class RecommendationEngine:
 
         service_dict = {s.id: s for s in services}
         return [service_dict[sid] for sid in service_ids if sid in service_dict]
+    
+    # CATEGORY RECOMMENDATIONS
+    def get_recommended_categories(self, limit=5):
+        """
+        Recommend service categories the customer might be interested in.
+        """
+        scores = {}
+
+        # Get customer's booked categories
+        booked_categories = set(
+            Booking.objects.filter(
+                customer=self.customer
+            ).values_list('service__category_id', flat=True)
+        )
+
+        # All categories except booked ones
+        all_categories = ServiceCategory.objects.exclude(id__in=booked_categories)
+
+        # Find categories often booked together
+        for booked_cat_id in booked_categories:
+            # Customers who booked this category also booked...
+            co_booked = Booking.objects.filter(
+                customer__bookings__service__category_id=booked_cat_id,
+                status='COMPLETED'
+            ).exclude(
+                service__category_id=booked_cat_id
+            ).values('service__category_id').annotate(
+                count=Count('id')
+            ).order_by('-count')[:10]
+
+            for item in co_booked:
+                cat_id = item['service__category_id']
+                if cat_id not in booked_categories:
+                    scores[cat_id] = scores.get(cat_id, 0) + item['count']
+
+        # Normalize scores
+        max_score = max(scores.values()) if scores else 1
+        for cat_id in scores:
+            scores[cat_id] = scores[cat_id] / max_score
+
+        # Sort and return
+        sorted_categories = sorted(
+            scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:limit]
+
+        category_ids = [c[0] for c in sorted_categories]
+        categories = ServiceCategory.objects.filter(id__in=category_ids)
+
+        cat_dict = {c.id: c for c in categories}
+        return [cat_dict[cid] for cid in category_ids if cid in cat_dict]
