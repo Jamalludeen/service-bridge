@@ -82,3 +82,43 @@ class RecommendationEngine:
         # Preserve recommendation order
         service_dict = {s.id: s for s in services}
         return [service_dict[sid] for sid in service_ids if sid in service_dict]
+    
+    def _collaborative_filtering_services(self):
+        """
+        Find services booked by users with similar booking patterns.
+        "Customers who booked X also booked Y"
+        """
+        scores = {}
+
+        # Get categories the customer has booked
+        customer_categories = Booking.objects.filter(
+            customer=self.customer,
+            status='COMPLETED'
+        ).values_list('service__category_id', flat=True).distinct()
+
+        if not customer_categories:
+            return scores
+
+        # Find other customers who booked same categories
+        similar_customers = CustomerProfile.objects.filter(
+            bookings__service__category_id__in=customer_categories,
+            bookings__status='COMPLETED'
+        ).exclude(id=self.customer.id).distinct()[:100]
+
+        # Get services those customers booked
+        similar_bookings = Booking.objects.filter(
+            customer__in=similar_customers,
+            status='COMPLETED'
+        ).exclude(
+            service__category_id__in=customer_categories
+        ).values('service_id').annotate(
+            count=Count('id')
+        ).order_by('-count')[:50]
+
+        max_count = similar_bookings[0]['count'] if similar_bookings else 1
+
+        for booking in similar_bookings:
+            # Normalize score to 0-1
+            scores[booking['service_id']] = booking['count'] / max_count
+
+        return scores
