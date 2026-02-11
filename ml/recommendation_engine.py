@@ -489,3 +489,48 @@ class ProfessionalRecommendationEngine:
         ).order_by('-count')[:limit]
 
         return list(suggested)
+    
+    def get_optimal_pricing(self, service_id):
+        """
+        Suggest optimal pricing based on market data.
+        """
+        try:
+            service = Service.objects.get(id=service_id)
+        except Service.DoesNotExist:
+            return None
+
+        # Get similar services in same category
+        similar_services = Service.objects.filter(
+            category=service.category,
+            is_active=True,
+            professional__is_active=True,
+            professional__verification_status='VERIFIED'
+        ).exclude(id=service_id)
+
+        if not similar_services:
+            return None
+
+        # Calculate market stats
+        prices = list(similar_services.values_list('price_per_unit', flat=True))
+        avg_price = sum(prices) / len(prices)
+
+        # Adjust based on professional's rating
+        rating_adjustment = 1.0
+        if self.professional.avg_rating:
+            # Higher rating = can charge more
+            rating_adjustment = 0.9 + (self.professional.avg_rating / 50)  # 0.9 to 1.1
+
+        # Adjust based on experience
+        exp_adjustment = 1.0
+        if self.professional.years_of_experience:
+            exp_adjustment = 1.0 + (self.professional.years_of_experience * 0.02)  # +2% per year
+
+        suggested_price = float(avg_price) * rating_adjustment * exp_adjustment
+
+        return {
+            'current_price': float(service.price_per_unit),
+            'market_average': float(avg_price),
+            'suggested_price': round(suggested_price, 2),
+            'min_market': float(min(prices)),
+            'max_market': float(max(prices)),
+        }
