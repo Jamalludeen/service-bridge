@@ -46,6 +46,9 @@ class UserInteraction(models.Model):
             models.Index(fields=['created_at']),
         ]
 
+    def __str__(self):
+        return f"{self.user} - {self.interaction_type} on {self.content_type}:{self.object_id}"
+
 
 class ServiceSimilarity(models.Model):
     """Pre-computed service similarity scores"""
@@ -69,6 +72,9 @@ class ServiceSimilarity(models.Model):
         indexes = [
             models.Index(fields=['service_a', 'similarity_score']),
         ]
+
+    def __str__(self):
+        return f"Similarity({self.service_a_id}, {self.service_b_id}) = {self.similarity_score:.2f}"
 
 
 class ProfessionalScore(models.Model):
@@ -97,6 +103,9 @@ class ProfessionalScore(models.Model):
     class Meta:
         ordering = ['-overall_score']
 
+    def __str__(self):
+        return f"{self.professional} - score: {self.overall_score:.2f}"
+
 
 class CustomerPreference(models.Model):
     """Learned customer preferences"""
@@ -120,6 +129,9 @@ class CustomerPreference(models.Model):
     booking_frequency_days = models.FloatField(null=True, blank=True)
 
     last_computed_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Preferences for {self.customer}"
 
 
 class RecommendationLog(models.Model):
@@ -147,3 +159,6 @@ class RecommendationLog(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.recommendation_type} for {self.user} ({self.algorithm_version})"
