@@ -251,3 +251,39 @@ class RecommendationEngine:
             scores[item['service_id']] = (count_score * 0.7) + (rating_score * 0.3)
 
         return scores
+    
+    # PROFESSIONAL RECOMMENDATIONS
+
+    def get_recommended_professionals(self, category_id=None, limit=10):
+        """
+        Get recommended professionals for the customer.
+        Optionally filter by category.
+        """
+        scores = {}
+
+        queryset = Professional.objects.filter(
+            is_active=True,
+            verification_status='VERIFIED'
+        )
+
+        if category_id:
+            queryset = queryset.filter(services__id=category_id)
+
+        queryset = queryset.select_related('user').prefetch_related('services')
+
+        for professional in queryset:
+            score = self._calculate_professional_score(professional)
+            scores[professional.id] = score
+
+        # Sort by score
+        sorted_professionals = sorted(
+            scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:limit]
+
+        professional_ids = [p[0] for p in sorted_professionals]
+
+        # Fetch and preserve order
+        professional_dict = {p.id: p for p in queryset.filter(id__in=professional_ids)}
+        return [professional_dict[pid] for pid in professional_ids if pid in professional_dict]
