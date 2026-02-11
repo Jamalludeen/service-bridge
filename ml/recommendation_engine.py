@@ -182,3 +182,42 @@ class RecommendationEngine:
                 scores[service.id] = score
 
         return scores
+    
+    def _location_based_services(self):
+        """
+        Recommend services from professionals near the customer.
+        """
+        scores = {}
+
+        if not self.customer.latitude or not self.customer.longitude:
+            return scores
+
+        customer_lat = float(self.customer.latitude)
+        customer_lon = float(self.customer.longitude)
+
+        # Get nearby professionals (within ~50km)
+        professionals = Professional.objects.filter(
+            is_active=True,
+            verification_status='VERIFIED',
+            latitude__isnull=False,
+            longitude__isnull=False
+        )
+
+        for professional in professionals:
+            distance = self._haversine_distance(
+                customer_lat, customer_lon,
+                float(professional.latitude), float(professional.longitude)
+            )
+
+            # Score inversely proportional to distance (max 50km)
+            if distance <= 50:
+                distance_score = 1 - (distance / 50)
+
+                # Get services from this professional
+                for service in professional.services_offered.filter(is_active=True):
+                    scores[service.id] = max(
+                        scores.get(service.id, 0),
+                        distance_score
+                    )
+
+        return scores
