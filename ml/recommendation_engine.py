@@ -437,7 +437,7 @@ class RecommendationEngine:
         return [cat_dict[cid] for cid in category_ids if cid in cat_dict]
 
     # UTILITY METHODS
-    
+
     def _haversine_distance(self, lat1, lon1, lat2, lon2):
         """
         Calculate distance between two points in kilometers.
@@ -455,3 +455,37 @@ class RecommendationEngine:
         c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
         return R * c
+    
+class ProfessionalRecommendationEngine:
+    """
+    Recommendations for professionals.
+    """
+
+    def __init__(self, professional):
+        self.professional = professional
+
+    def get_suggested_categories(self, limit=3):
+        """
+        Suggest service categories the professional might want to add.
+        Based on what similar professionals offer.
+        """
+        # Current categories
+        current_categories = set(self.professional.services.values_list('id', flat=True))
+
+        # Find professionals with similar existing categories
+        similar_professionals = Professional.objects.filter(
+            services__in=current_categories,
+            is_active=True,
+            verification_status='VERIFIED'
+        ).exclude(id=self.professional.id).distinct()
+
+        # Get categories those professionals have that this one doesn't
+        suggested = ServiceCategory.objects.filter(
+            professionals__in=similar_professionals
+        ).exclude(
+            id__in=current_categories
+        ).annotate(
+            count=Count('professionals')
+        ).order_by('-count')[:limit]
+
+        return list(suggested)
