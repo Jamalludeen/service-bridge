@@ -122,3 +122,63 @@ class RecommendationEngine:
             scores[booking['service_id']] = booking['count'] / max_count
 
         return scores
+    
+    def _content_based_services(self):
+        """
+        Recommend services similar to what customer has booked.
+        Based on category, price range, professional rating.
+        """
+        scores = {}
+
+        # Get customer's booking history
+        past_bookings = Booking.objects.filter(
+            customer=self.customer,
+            status='COMPLETED'
+        ).select_related('service', 'service__category')
+
+        if not past_bookings:
+            return scores
+
+        # Calculate customer's preferences
+        booked_categories = set()
+        avg_price = Decimal('0')
+        total_price = Decimal('0')
+
+        for booking in past_bookings:
+            booked_categories.add(booking.service.category_id)
+            total_price += booking.estimated_price
+
+        avg_price = total_price / len(past_bookings) if past_bookings else Decimal('0')
+        price_tolerance = avg_price * Decimal('0.5')  # 50% tolerance
+
+        # Find similar services
+        similar_services = Service.objects.filter(
+            is_active=True,
+            professional__is_active=True,
+            professional__verification_status='VERIFIED'
+        ).exclude(
+            bookings__customer=self.customer
+        )
+
+        for service in similar_services:
+            score = 0.0
+
+            # Category match (high weight)
+            if service.category_id in booked_categories:
+                score += 0.5
+
+            # Price similarity
+            price_diff = abs(service.price_per_unit - avg_price)
+            if price_diff <= price_tolerance:
+                price_score = 1 - (float(price_diff) / float(price_tolerance))
+                score += 0.3 * price_score
+
+            # Professional rating boost
+            if service.professional.avg_rating:
+                rating_score = service.professional.avg_rating / 5.0
+                score += 0.2 * rating_score
+
+            if score > 0:
+                scores[service.id] = score
+
+        return scores
