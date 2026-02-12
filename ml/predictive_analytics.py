@@ -89,3 +89,17 @@ class CancellationRiskPredictor:
             ).count()
 
             return issues / total
+    
+    def _calculate_lead_time_risk(self, booking):
+        """Risk based on booking lead time."""
+        now = timezone.now().date()
+        days_until = (booking.scheduled_date - now).days
+
+        if days_until < 1:  # Same day - higher risk
+            return 0.4
+        elif days_until < 3:
+            return 0.2
+        elif days_until > 30:  # Very far out
+            return 0.3
+        else:
+            return 0.1
