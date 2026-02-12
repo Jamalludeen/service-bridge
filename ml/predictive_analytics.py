@@ -124,3 +124,24 @@ class CancellationRiskPredictor:
             return 0.3
         else:
             return 0.1
+        
+    def _is_first_time_pairing(self, booking):
+        """Check if customer and professional have worked together before."""
+        previous = Booking.objects.filter(
+            customer=booking.customer,
+            professional=booking.professional,
+            status='COMPLETED'
+        ).exists()
+
+        return not previous
+
+    def _get_category_cancellation_rate(self, category_id):
+        """Cancellation rate for this service category."""
+        bookings = Booking.objects.filter(service__category_id=category_id)
+        total = bookings.count()
+
+        if total < 10:
+            return 0.15
+
+        cancelled = bookings.filter(status='CANCELLED').count()
+        return cancelled / total
