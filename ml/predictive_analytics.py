@@ -103,3 +103,24 @@ class CancellationRiskPredictor:
             return 0.3
         else:
             return 0.1
+        
+    def _calculate_price_risk(self, booking):
+        """Risk based on price deviation from customer norm."""
+        customer_avg = Booking.objects.filter(
+            customer=booking.customer,
+            status='COMPLETED'
+        ).aggregate(avg=Avg('estimated_price'))['avg']
+
+        if not customer_avg:
+            return 0.1
+
+        deviation = abs(float(booking.estimated_price) - float(customer_avg))
+        deviation_pct = deviation / float(customer_avg)
+
+        # High deviation = higher risk
+        if deviation_pct > 1.0:  # More than 100% different
+            return 0.4
+        elif deviation_pct > 0.5:
+            return 0.3
+        else:
+            return 0.1
