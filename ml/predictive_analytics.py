@@ -253,3 +253,44 @@ class DemandForecaster:
             'confidence': confidence,
             'trend': trend
         }
+    
+    def get_peak_hours(self, category_id=None, city=None):
+        """
+        Identify peak booking hours.
+        """
+        lookback = timezone.now() - timedelta(days=90)
+
+        queryset = Booking.objects.filter(created_at__gte=lookback)
+
+        if category_id:
+            queryset = queryset.filter(service__category_id=category_id)
+        if city:
+            queryset = queryset.filter(city__icontains=city)
+
+        # Group by hour
+        hourly_counts = {}
+        for booking in queryset:
+            hour = booking.scheduled_time.hour
+            hourly_counts[hour] = hourly_counts.get(hour, 0) + 1
+
+        if not hourly_counts:
+            return []
+
+        # Sort by count
+        sorted_hours = sorted(
+            hourly_counts.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        max_count = sorted_hours[0][1]
+
+        return [
+            {
+                'hour': hour,
+                'time_range': f"{hour:02d}:00 - {hour+1:02d}:00",
+                'bookings': count,
+                'intensity': round(count / max_count, 2)
+            }
+            for hour, count in sorted_hours[:5]
+        ]
