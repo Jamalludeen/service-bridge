@@ -145,3 +145,14 @@ class CancellationRiskPredictor:
 
         cancelled = bookings.filter(status='CANCELLED').count()
         return cancelled / total
+    
+    def _get_risk_level(self, score):
+        """Convert score to human-readable level."""
+        if score < 0.2:
+            return 'LOW'
+        elif score < 0.4:
+            return 'MODERATE'
+        elif score < 0.6:
+            return 'HIGH'
+        else:
+            return 'VERY_HIGH'
