@@ -156,3 +156,35 @@ class CancellationRiskPredictor:
             return 'HIGH'
         else:
             return 'VERY_HIGH'
+
+
+class DemandForecaster:
+    """
+    Forecast service demand by category, location, and time.
+    """
+
+    def get_demand_forecast(self, category_id=None, city=None, days_ahead=7):
+        """
+        Forecast demand for the next N days.
+        """
+        forecasts = []
+
+        for day_offset in range(days_ahead):
+            target_date = timezone.now().date() + timedelta(days=day_offset)
+
+            # Get historical data for this day of week
+            historical = self._get_historical_demand(
+                target_date.weekday(),
+                category_id,
+                city
+            )
+
+            forecasts.append({
+                'date': target_date.isoformat(),
+                'day_of_week': target_date.strftime('%A'),
+                'predicted_bookings': historical['avg_bookings'],
+                'confidence': historical['confidence'],
+                'trend': historical['trend']
+            })
+
+        return forecasts
