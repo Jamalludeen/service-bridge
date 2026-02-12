@@ -188,3 +188,68 @@ class DemandForecaster:
             })
 
         return forecasts
+    
+    def _get_historical_demand(self, day_of_week, category_id=None, city=None):
+        """
+        Analyze historical demand for a specific day of week.
+        """
+        # Look at last 12 weeks
+        lookback = timezone.now() - timedelta(weeks=12)
+
+        queryset = Booking.objects.filter(
+            created_at__gte=lookback,
+            scheduled_date__week_day=day_of_week + 2  # Django week_day: 1=Sunday
+        )
+
+        if category_id:
+            queryset = queryset.filter(service__category_id=category_id)
+
+        if city:
+            queryset = queryset.filter(city__icontains=city)
+
+        # Group by week
+        weekly_counts = []
+        for week in range(12):
+            week_start = timezone.now() - timedelta(weeks=12-week)
+            week_end = week_start + timedelta(weeks=1)
+
+            count = queryset.filter(
+                created_at__gte=week_start,
+                created_at__lt=week_end
+            ).count()
+            weekly_counts.append(count)
+
+        if not weekly_counts or sum(weekly_counts) == 0:
+            return {
+                'avg_bookings': 0,
+                'confidence': 'LOW',
+                'trend': 'STABLE'
+            }
+
+        avg_bookings = sum(weekly_counts) / len(weekly_counts)
+
+        # Calculate trend (comparing recent vs older)
+        recent_avg = sum(weekly_counts[-4:]) / 4 if len(weekly_counts) >= 4 else avg_bookings
+        older_avg = sum(weekly_counts[:4]) / 4 if len(weekly_counts) >= 4 else avg_bookings
+
+        if recent_avg > older_avg * 1.2:
+            trend = 'INCREASING'
+        elif recent_avg < older_avg * 0.8:
+            trend = 'DECREASING'
+        else:
+            trend = 'STABLE'
+
+        # Confidence based on data volume
+        total_bookings = sum(weekly_counts)
+        if total_bookings > 50:
+            confidence = 'HIGH'
+        elif total_bookings > 20:
+            confidence = 'MEDIUM'
+        else:
+            confidence = 'LOW'
+
+        return {
+            'avg_bookings': round(avg_bookings, 1),
+            'confidence': confidence,
+            'trend': trend
+        }
