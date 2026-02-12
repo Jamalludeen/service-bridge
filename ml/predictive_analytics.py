@@ -74,3 +74,18 @@ class CancellationRiskPredictor:
         ).count()
 
         return cancelled / total
+
+    def _get_professional_issue_rate(self, professional):
+            """Professional's rejection + cancellation rate."""
+            bookings = Booking.objects.filter(professional=professional)
+            total = bookings.count()
+
+            if total < 5:
+                return 0.15
+
+            issues = bookings.filter(
+                Q(status='REJECTED') |
+                Q(status='CANCELLED', cancelled_by=professional.user)
+            ).count()
+
+            return issues / total
