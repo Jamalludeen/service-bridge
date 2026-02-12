@@ -59,3 +59,18 @@ class CancellationRiskPredictor:
             'risk_level': self._get_risk_level(total_risk),
             'factors': {name: round(score, 3) for name, score, _ in risk_factors}
         }
+    
+    def _get_customer_cancellation_rate(self, customer):
+        """Customer's historical cancellation rate."""
+        bookings = Booking.objects.filter(customer=customer)
+        total = bookings.count()
+
+        if total < 3:  # Not enough history
+            return 0.2  # Assume moderate risk
+
+        cancelled = bookings.filter(
+            status='CANCELLED',
+            cancelled_by=customer.user
+        ).count()
+
+        return cancelled / total
