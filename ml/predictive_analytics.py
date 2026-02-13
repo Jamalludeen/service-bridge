@@ -1,4 +1,3 @@
-
 from django.db.models import Count, Avg, F, Q
 from django.utils import timezone
 from datetime import timedelta
@@ -59,7 +58,7 @@ class CancellationRiskPredictor:
             'risk_level': self._get_risk_level(total_risk),
             'factors': {name: round(score, 3) for name, score, _ in risk_factors}
         }
-    
+
     def _get_customer_cancellation_rate(self, customer):
         """Customer's historical cancellation rate."""
         bookings = Booking.objects.filter(customer=customer)
@@ -76,20 +75,20 @@ class CancellationRiskPredictor:
         return cancelled / total
 
     def _get_professional_issue_rate(self, professional):
-            """Professional's rejection + cancellation rate."""
-            bookings = Booking.objects.filter(professional=professional)
-            total = bookings.count()
+        """Professional's rejection + cancellation rate."""
+        bookings = Booking.objects.filter(professional=professional)
+        total = bookings.count()
 
-            if total < 5:
-                return 0.15
+        if total < 5:
+            return 0.15
 
-            issues = bookings.filter(
-                Q(status='REJECTED') |
-                Q(status='CANCELLED', cancelled_by=professional.user)
-            ).count()
+        issues = bookings.filter(
+            Q(status='REJECTED') |
+            Q(status='CANCELLED', cancelled_by=professional.user)
+        ).count()
 
-            return issues / total
-    
+        return issues / total
+
     def _calculate_lead_time_risk(self, booking):
         """Risk based on booking lead time."""
         now = timezone.now().date()
@@ -103,7 +102,7 @@ class CancellationRiskPredictor:
             return 0.3
         else:
             return 0.1
-        
+
     def _calculate_price_risk(self, booking):
         """Risk based on price deviation from customer norm."""
         customer_avg = Booking.objects.filter(
@@ -124,7 +123,7 @@ class CancellationRiskPredictor:
             return 0.3
         else:
             return 0.1
-        
+
     def _is_first_time_pairing(self, booking):
         """Check if customer and professional have worked together before."""
         previous = Booking.objects.filter(
@@ -145,7 +144,7 @@ class CancellationRiskPredictor:
 
         cancelled = bookings.filter(status='CANCELLED').count()
         return cancelled / total
-    
+
     def _get_risk_level(self, score):
         """Convert score to human-readable level."""
         if score < 0.2:
@@ -188,7 +187,7 @@ class DemandForecaster:
             })
 
         return forecasts
-    
+
     def _get_historical_demand(self, day_of_week, category_id=None, city=None):
         """
         Analyze historical demand for a specific day of week.
@@ -253,7 +252,7 @@ class DemandForecaster:
             'confidence': confidence,
             'trend': trend
         }
-    
+
     def get_peak_hours(self, category_id=None, city=None):
         """
         Identify peak booking hours.
