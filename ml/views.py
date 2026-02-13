@@ -139,3 +139,34 @@ class RecommendedCategoriesView(APIView):
             "count": len(categories),
             "recommendations": serializer.data
         })
+
+
+class SimilarServicesView(APIView):
+    """
+    GET /api/ml/recommendations/services/{service_id}/similar/
+
+    Get services similar to a given service.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, service_id):
+        try:
+            customer = request.user.customerprofile
+        except:
+            return Response(
+                {"error": "Customer profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        limit = int(request.query_params.get('limit', 5))
+
+        engine = RecommendationEngine(customer)
+        services = engine.get_similar_services(service_id, limit=limit)
+
+        serializer = ServiceRecommendationSerializer(services, many=True)
+
+        return Response({
+            "count": len(services),
+            "similar_services": serializer.data
+        })
