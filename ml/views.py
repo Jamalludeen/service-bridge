@@ -60,3 +60,45 @@ class RecommendedServicesView(APIView):
             "recommendations": serializer.data
         })
 
+
+
+class RecommendedProfessionalsView(APIView):
+    """
+    GET /api/ml/recommendations/professionals/
+    GET /api/ml/recommendations/professionals/?category_id=1
+
+    Get recommended professionals for the authenticated customer.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'customer':
+            return Response(
+                {"error": "Only customers can access recommendations."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            customer = request.user.customerprofile
+        except:
+            return Response(
+                {"error": "Customer profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        category_id = request.query_params.get('category_id')
+        limit = int(request.query_params.get('limit', 10))
+
+        engine = RecommendationEngine(customer)
+        professionals = engine.get_recommended_professionals(
+            category_id=category_id,
+            limit=limit
+        )
+
+        serializer = ProfessionalRecommendationSerializer(professionals, many=True)
+
+        return Response({
+            "count": len(professionals),
+            "recommendations": serializer.data
+        })
