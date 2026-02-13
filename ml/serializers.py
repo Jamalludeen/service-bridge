@@ -54,3 +54,21 @@ class CancellationRiskSerializer(serializers.Serializer):
     risk_level = serializers.CharField()
     factors = serializers.DictField()
 
+
+
+class DemandForecastSerializer(serializers.Serializer):
+    """Serializer for demand forecast"""
+    date = serializers.CharField()
+    day_of_week = serializers.CharField()
+    predicted_bookings = serializers.FloatField()
+    confidence = serializers.CharField()
+    trend = serializers.CharField()
+
+
+class PeakHoursSerializer(serializers.Serializer):
+    """Serializer for peak hours"""
+    hour = serializers.IntegerField()
+    time_range = serializers.CharField()
+    bookings = serializers.IntegerField()
+    intensity = serializers.FloatField()
+
