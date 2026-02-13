@@ -40,3 +40,17 @@ class ProfessionalRecommendationSerializer(serializers.Serializer):
 
     def get_categories(self, obj):
         return list(obj.services.values_list('name', flat=True))
+
+
+class CategoryRecommendationSerializer(serializers.Serializer):
+    """Serializer for recommended categories"""
+    id = serializers.IntegerField()
+    name = serializers.CharField()
+
+
+class CancellationRiskSerializer(serializers.Serializer):
+    """Serializer for cancellation risk prediction"""
+    risk_score = serializers.FloatField()
+    risk_level = serializers.CharField()
+    factors = serializers.DictField()
+
