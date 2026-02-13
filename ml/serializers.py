@@ -22,3 +22,21 @@ class ServiceRecommendationSerializer(serializers.Serializer):
 
     def get_professional_rating(self, obj):
         return obj.professional.avg_rating
+
+
+class ProfessionalRecommendationSerializer(serializers.Serializer):
+    """Serializer for recommended professionals"""
+    id = serializers.IntegerField()
+    name = serializers.SerializerMethodField()
+    bio = serializers.CharField()
+    avg_rating = serializers.FloatField()
+    total_reviews = serializers.IntegerField()
+    years_of_experience = serializers.IntegerField()
+    city = serializers.CharField()
+    categories = serializers.SerializerMethodField()
+
+    def get_name(self, obj):
+        return obj.user.get_full_name() or obj.user.email
+
+    def get_categories(self, obj):
+        return list(obj.services.values_list('name', flat=True))
