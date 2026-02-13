@@ -72,3 +72,11 @@ class PeakHoursSerializer(serializers.Serializer):
     bookings = serializers.IntegerField()
     intensity = serializers.FloatField()
 
+
+class PricingSuggestionSerializer(serializers.Serializer):
+    """Serializer for pricing suggestions"""
+    current_price = serializers.FloatField()
+    market_average = serializers.FloatField()
+    suggested_price = serializers.FloatField()
+    min_market = serializers.FloatField()
+    max_market = serializers.FloatField()
