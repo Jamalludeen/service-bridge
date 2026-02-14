@@ -246,3 +246,44 @@ class PricingSuggestionView(APIView):
         serializer = PricingSuggestionSerializer(pricing)
 
         return Response(serializer.data)
+
+
+# PREDICTIVE ANALYTICS ENDPOINTS
+
+class CancellationRiskView(APIView):
+    """
+    GET /api/ml/analytics/cancellation-risk/{booking_id}/
+
+    Get cancellation risk prediction for a booking.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, booking_id):
+        try:
+            booking = Booking.objects.get(id=booking_id)
+        except Booking.DoesNotExist:
+            return Response(
+                {"error": "Booking not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Check access
+        user = request.user
+        if user.role == 'customer' and booking.customer.user != user:
+            return Response(
+                {"error": "Access denied."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if user.role == 'professional' and booking.professional.user != user:
+            return Response(
+                {"error": "Access denied."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        predictor = CancellationRiskPredictor()
+        risk = predictor.predict_risk(booking)
+
+        serializer = CancellationRiskSerializer(risk)
+
+        return Response(serializer.data)
