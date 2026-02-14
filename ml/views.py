@@ -318,3 +318,32 @@ class DemandForecastView(APIView):
             "city": city,
             "forecasts": serializer.data
         })
+    
+
+class PeakHoursView(APIView):
+    """
+    GET /api/ml/analytics/peak-hours/
+    GET /api/ml/analytics/peak-hours/?category_id=1&city=Kabul
+
+    Get peak booking hours.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        category_id = request.query_params.get('category_id')
+        city = request.query_params.get('city')
+
+        forecaster = DemandForecaster()
+        peak_hours = forecaster.get_peak_hours(
+            category_id=category_id,
+            city=city
+        )
+
+        serializer = PeakHoursSerializer(peak_hours, many=True)
+
+        return Response({
+            "category_id": category_id,
+            "city": city,
+            "peak_hours": serializer.data
+        })
