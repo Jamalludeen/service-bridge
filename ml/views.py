@@ -207,3 +207,42 @@ class SuggestedCategoriesForProfessionalView(APIView):
         return Response({
             "suggestions": serializer.data
         })
+
+
+class PricingSuggestionView(APIView):
+    """
+    GET /api/ml/professional/pricing-suggestion/{service_id}/
+
+    Get optimal pricing suggestion for a service.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, service_id):
+        if request.user.role != 'professional':
+            return Response(
+                {"error": "Only professionals can access this."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            professional = request.user.professional
+            service = Service.objects.get(id=service_id, professional=professional)
+        except Service.DoesNotExist:
+            return Response(
+                {"error": "Service not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        engine = ProfessionalRecommendationEngine(professional)
+        pricing = engine.get_optimal_pricing(service_id)
+
+        if not pricing:
+            return Response(
+                {"error": "Not enough market data for pricing suggestion."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        serializer = PricingSuggestionSerializer(pricing)
+
+        return Response(serializer.data)
