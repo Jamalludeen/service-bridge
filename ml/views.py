@@ -170,3 +170,40 @@ class SimilarServicesView(APIView):
             "count": len(services),
             "similar_services": serializer.data
         })
+
+
+# PROFESSIONAL RECOMMENDATION ENDPOINTS
+
+
+class SuggestedCategoriesForProfessionalView(APIView):
+    """
+    GET /api/ml/professional/suggested-categories/
+
+    Get suggested service categories for the professional to add.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        if request.user.role != 'professional':
+            return Response(
+                {"error": "Only professionals can access this."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        try:
+            professional = request.user.professional
+        except:
+            return Response(
+                {"error": "Professional profile not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        engine = ProfessionalRecommendationEngine(professional)
+        categories = engine.get_suggested_categories()
+
+        serializer = CategoryRecommendationSerializer(categories, many=True)
+
+        return Response({
+            "suggestions": serializer.data
+        })
