@@ -287,3 +287,34 @@ class CancellationRiskView(APIView):
         serializer = CancellationRiskSerializer(risk)
 
         return Response(serializer.data)
+
+
+class DemandForecastView(APIView):
+    """
+    GET /api/ml/analytics/demand-forecast/
+    GET /api/ml/analytics/demand-forecast/?category_id=1&city=Kabul&days=7
+
+    Get demand forecast for services.
+    """
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        category_id = request.query_params.get('category_id')
+        city = request.query_params.get('city')
+        days = int(request.query_params.get('days', 7))
+
+        forecaster = DemandForecaster()
+        forecasts = forecaster.get_demand_forecast(
+            category_id=category_id,
+            city=city,
+            days_ahead=days
+        )
+
+        serializer = DemandForecastSerializer(forecasts, many=True)
+
+        return Response({
+            "category_id": category_id,
+            "city": city,
+            "forecasts": serializer.data
+        })
